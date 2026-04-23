@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Body CT Protocols — Interactive Reference</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #dde4f0; min-height: 100vh; }
+
+/* ── HEADER ── */
+header {
+  background: linear-gradient(135deg,#1a2a4a,#0d1f3c);
+  padding: 20px 28px; border-bottom: 2px solid #2a6dbd;
+  display: flex; align-items: center; gap: 14px;
+}
+header .icon { font-size: 2rem; }
+header h1 { font-size: 1.45rem; font-weight: 700; color: #7ec8f7; }
+header p  { font-size: 0.78rem; color: #6677aa; margin-top: 2px; }
+
+/* ── TABS ── */
+.tabs { display: flex; background: #141824; border-bottom: 1px solid #2a3550; padding: 0 24px; overflow-x: auto; }
+.tab {
+  padding: 13px 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+  color: #5566aa; border-bottom: 3px solid transparent; white-space: nowrap;
+  transition: color .2s, border-color .2s;
+}
+.tab:hover { color: #9ab4e0; }
+.tab.active { color: #7ec8f7; border-bottom-color: #2a6dbd; background: #1a2035; }
+
+.pane { display: none; padding: 24px 28px; }
+.pane.active { display: block; }
+
+/* ── SHARED ── */
+.section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; color: #3d5a88; text-transform: uppercase; margin-bottom: 16px; }
+.tag { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; letter-spacing: .3px; }
+.t-blue   { background: #0d2f5e; color: #7ec8f7; border: 1px solid #1e4a88; }
+.t-green  { background: #0d3b20; color: #5dcc88; border: 1px solid #1a7040; }
+.t-yellow { background: #3b2c06; color: #eec040; border: 1px solid #7a5c0a; }
+.t-red    { background: #3b0e0e; color: #f07070; border: 1px solid #882020; }
+.t-purple { background: #261a4a; color: #b090f0; border: 1px solid #5030aa; }
+.t-teal   { background: #0a3535; color: #40c8c8; border: 1px solid #0a7070; }
+.t-gray   { background: #1a2035; color: #7088aa; border: 1px solid #2a3550; }
+
+/* ── PROTOCOL BROWSER ── */
+.browser-top { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.search-box {
+  flex: 1; min-width: 200px; background: #1a2035; border: 1px solid #2a3a5a;
+  border-radius: 8px; padding: 10px 14px; color: #dde4f0; font-size: 0.85rem; outline: none;
+}
+.search-box:focus { border-color: #2a6dbd; }
+.filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.fbtn {
+  padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; border: 1px solid #2a3a5a; background: #1a2035; color: #7088aa;
+  transition: all .15s;
+}
+.fbtn:hover, .fbtn.on { background: #0d2f5e; color: #7ec8f7; border-color: #2a6dbd; }
+
+.proto-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(320px,1fr)); gap: 14px; align-items: start; }
+.proto-card {
+  background: #1a2035; border: 1px solid #2a3550; border-radius: 12px;
+  cursor: pointer; transition: border-color .2s, box-shadow .2s;
+  overflow: hidden;
+}
+.proto-card:hover { border-color: #2a6dbd; box-shadow: 0 0 0 1px #2a6dbd22; }
+.proto-card.hidden { display: none; }
+.proto-head { padding: 14px 16px 10px; display: flex; align-items: flex-start; gap: 10px; }
+.proto-num { min-width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; }
+.proto-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+.proto-subtitle { font-size: 0.73rem; color: #5a7099; }
+.proto-tags { padding: 0 16px 12px; display: flex; flex-wrap: wrap; gap: 5px; }
+.proto-body { display: none; border-top: 1px solid #2a3550; padding: 14px 16px; }
+.proto-body.open { display: block; }
+.proto-section { margin-bottom: 12px; }
+.proto-section:last-child { margin-bottom: 0; }
+.proto-section h4 { font-size: 0.73rem; font-weight: 700; color: #4a7aaa; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.proto-section ul { padding-left: 16px; }
+.proto-section li { font-size: 0.8rem; color: #9ab4d0; line-height: 1.6; }
+.proto-section p { font-size: 0.8rem; color: #9ab4d0; line-height: 1.6; }
+.phase-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+.phase-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+
+/* ── DECISION TREE ── */
+#tree-container { overflow-x: auto; }
+.tree { min-width: 800px; }
+.dt-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 0; flex-wrap: wrap; }
+.dt-node {
+  background: #1a2035; border: 1.5px solid #2a3a5a; border-radius: 10px;
+  padding: 11px 16px; font-size: 0.8rem; font-weight: 600; text-align: center;
+  cursor: pointer; transition: all .2s; position: relative; max-width: 180px;
+  min-width: 140px;
+}
+.dt-node:hover { border-color: #2a6dbd; color: #7ec8f7; }
+.dt-node.start { background: #0d2f5e; border-color: #2a6dbd; color: #7ec8f7; font-size: 0.9rem; max-width: 220px; }
+.dt-node.leaf  { background: #0d3b20; border-color: #1a7040; color: #5dcc88; cursor: default; }
+.dt-connector { text-align: center; color: #2a4a7a; font-size: 1.1rem; margin: 4px 0; }
+.dt-label { font-size: 0.68rem; color: #3d5a88; text-align: center; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+.dt-group { flex: 1; min-width: 150px; max-width: 200px; display: flex; flex-direction: column; align-items: center; }
+.tree-section { margin-bottom: 32px; }
+.tree-section h3 { font-size: 0.8rem; color: #4a6aaa; text-transform: uppercase; letter-spacing: .8px; font-weight: 700; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #2a3550; }
+.indent { margin-left: 24px; margin-top: 8px; }
+
+/* ── CHECKLIST ── */
+.cl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:680px){ .cl-grid { grid-template-columns: 1fr; } }
+.cl-card { background: #1a2035; border: 1px solid #2a3550; border-radius: 12px; padding: 18px; }
+.cl-card h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.cl-item { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; border-bottom: 1px solid #1e2840; cursor: pointer; }
+.cl-item:last-child { border-bottom: none; }
+.cl-item input { margin-top: 2px; accent-color: #2a6dbd; width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+.cl-item label { font-size: 0.8rem; color: #9ab4d0; line-height: 1.45; cursor: pointer; }
+.cl-item.done label { text-decoration: line-through; color: #3d5a7a; }
+.prog-wrap { background: #0d1225; border-radius: 999px; height: 6px; margin: 14px 0 6px; }
+.prog-bar  { height: 6px; border-radius: 999px; background: linear-gradient(90deg,#2a6dbd,#40c8c8); transition: width .4s; }
+.prog-lbl  { font-size: 0.72rem; color: #4a6a99; }
+
+/* ── REFERENCE ── */
+.ref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:680px){ .ref-grid { grid-template-columns: 1fr; } }
+.ref-card { background: #1a2035; border: 1px solid #2a3550; border-radius: 12px; padding: 18px; }
+.ref-card h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 14px; color: #7ec8f7; }
+.ref-table { width: 100%; border-collapse: collapse; }
+.ref-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .5px; color: #4a6a99; padding: 6px 8px; border-bottom: 1px solid #2a3550; text-align: left; }
+.ref-table td { font-size: 0.8rem; padding: 7px 8px; border-bottom: 1px solid #1e2840; color: #9ab4d0; }
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table tr:hover td { background: #1e2840; }
+.hu-bar { display: inline-block; height: 10px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+
+.badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; }
+.b-red    { background:#3b0e0e; color:#f07070; }
+.b-yellow { background:#3b2c06; color:#eec040; }
+.b-green  { background:#0d3b20; color:#5dcc88; }
+.b-blue   { background:#0d2f5e; color:#7ec8f7; }
+
+.contrast-block { background: #141824; border-radius: 8px; padding: 12px; margin-top: 10px; font-size: 0.8rem; color: #9ab4d0; line-height: 1.7; }
+.contrast-block strong { color: #7ec8f7; }
+
+.stats-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.stat-card { flex: 1; min-width: 120px; background: #1a2035; border: 1px solid #2a3550; border-radius: 10px; padding: 14px 16px; }
+.stat-card .num { font-size: 1.8rem; font-weight: 800; color: #7ec8f7; }
+.stat-card .lbl { font-size: 0.72rem; color: #4a6a99; margin-top: 2px; }
+
+/* ── TIMELINE ── */
+.tl-select-row { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+.tl-select { background: #1a2035; border: 1px solid #2a3550; border-radius: 8px; padding: 10px 14px; color: #dde4f0; font-size: 0.85rem; outline: none; min-width: 260px; }
+.tl-select:focus { border-color: #2a6dbd; }
+.tl-meta { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.tl-meta-pill { background: #1a2035; border: 1px solid #2a3550; border-radius: 8px; padding: 8px 14px; font-size: 0.78rem; color: #8099bb; }
+.tl-meta-pill strong { color: #7ec8f7; }
+.tl-canvas { background: #141824; border-radius: 12px; border: 1px solid #2a3550; padding: 32px 24px 20px; position: relative; overflow-x: auto; }
+.tl-axis { position: relative; height: 6px; background: #1e2840; border-radius: 3px; margin: 0 0 48px; }
+.tl-axis-end { position: absolute; right: 0; top: -18px; font-size: 0.7rem; color: #3d5a88; }
+.tl-axis-start { position: absolute; left: 0; top: -18px; font-size: 0.7rem; color: #3d5a88; }
+.tl-marker {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid #0f1117;
+  cursor: default; transition: transform .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.tl-marker:hover { transform: translate(-50%, -50%) scale(1.3); }
+.tl-label {
+  position: absolute; top: 16px; transform: translateX(-50%);
+  font-size: 0.72rem; font-weight: 700; white-space: nowrap; text-align: center;
+  max-width: 120px; line-height: 1.3;
+}
+.tl-sublabel {
+  position: absolute; top: 34px; transform: translateX(-50%);
+  font-size: 0.65rem; color: #4a6a99; white-space: nowrap; text-align: center; max-width: 140px;
+}
+.tl-time {
+  position: absolute; bottom: -24px; transform: translateX(-50%);
+  font-size: 0.68rem; color: #4a6a99; white-space: nowrap;
+}
+.tl-inject-line { position: absolute; left: 0; top: -24px; bottom: -8px; width: 2px; background: #40c8c8; }
+.tl-inject-txt { position: absolute; left: 4px; top: -22px; font-size: 0.68rem; color: #40c8c8; font-weight: 700; }
+.phase-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.phase-row-tl { display: flex; align-items: flex-start; gap: 12px; background: #1a2035; border-radius: 8px; padding: 10px 14px; }
+.phase-dot-tl { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.phase-name { font-size: 0.83rem; font-weight: 700; }
+.phase-note { font-size: 0.75rem; color: #6a88aa; margin-top: 2px; }
+.phase-time { margin-left: auto; font-size: 0.78rem; color: #4a6a99; white-space: nowrap; padding-left: 12px; }
+
+/* ── REACTION CARD ── */
+.rx-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+@media(max-width:860px){ .rx-grid { grid-template-columns: 1fr; } }
+.rx-card { border-radius: 12px; padding: 20px; border: 2px solid; }
+.rx-card.mild     { background: #0d2f0d; border-color: #1a7040; }
+.rx-card.moderate { background: #2e2200; border-color: #8a6a0a; }
+.rx-card.severe   { background: #2e0808; border-color: #882020; }
+.rx-card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 4px; }
+.rx-card.mild     h3 { color: #5dcc88; }
+.rx-card.moderate h3 { color: #eec040; }
+.rx-card.severe   h3 { color: #f07070; }
+.rx-card .rx-subtitle { font-size: 0.72rem; margin-bottom: 14px; font-weight: 600; letter-spacing: .3px; }
+.rx-card.mild     .rx-subtitle { color: #2a7040; }
+.rx-card.moderate .rx-subtitle { color: #7a5c0a; }
+.rx-card.severe   .rx-subtitle { color: #882020; }
+.rx-symptoms { background: rgba(0,0,0,.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+.rx-symptoms h4 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; color: #5a7099; }
+.rx-symptoms ul { padding-left: 14px; }
+.rx-symptoms li { font-size: 0.78rem; color: #9ab4d0; line-height: 1.6; }
+.rx-steps h4 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; color: #5a7099; }
+.rx-step { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+.rx-step-num { min-width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; flex-shrink: 0; }
+.rx-card.mild     .rx-step-num { background: #1a7040; color: #5dcc88; }
+.rx-card.moderate .rx-step-num { background: #8a6a0a; color: #eec040; }
+.rx-card.severe   .rx-step-num { background: #882020; color: #f07070; }
+.rx-step p { font-size: 0.78rem; color: #9ab4d0; line-height: 1.5; }
+.rx-step p strong { color: #dde4f0; }
+.rx-banner { background: #1a2035; border: 1px solid #2a3550; border-radius: 10px; padding: 14px 18px; font-size: 0.8rem; color: #7088aa; margin-bottom: 20px; }
+.rx-banner strong { color: #7ec8f7; }
+.rx-drugs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:600px){ .rx-drugs { grid-template-columns: 1fr; } }
+.rx-drug { background: #1a2035; border: 1px solid #2a3550; border-radius: 8px; padding: 12px 14px; }
+.rx-drug .drug-name { font-size: 0.83rem; font-weight: 700; color: #7ec8f7; margin-bottom: 3px; }
+.rx-drug .drug-dose { font-size: 0.78rem; color: #5dcc88; font-weight: 600; margin-bottom: 3px; }
+.rx-drug .drug-use  { font-size: 0.73rem; color: #6a88aa; }
+
+/* ── CALCULATOR ── */
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:700px){ .calc-grid { grid-template-columns: 1fr; } }
+.calc-card { background: #1a2035; border: 1px solid #2a3550; border-radius: 12px; padding: 22px; }
+.calc-card h3 { font-size: 0.9rem; font-weight: 700; color: #7ec8f7; margin-bottom: 18px; }
+.field-group { margin-bottom: 14px; }
+.field-group label { display: block; font-size: 0.75rem; color: #5a7099; margin-bottom: 5px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; }
+.field-input { width: 100%; background: #141824; border: 1px solid #2a3550; border-radius: 8px; padding: 9px 12px; color: #dde4f0; font-size: 0.85rem; outline: none; }
+.field-input:focus { border-color: #2a6dbd; }
+.calc-btn { width: 100%; background: #0d2f5e; border: 1px solid #2a6dbd; border-radius: 8px; padding: 10px; color: #7ec8f7; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-top: 4px; transition: background .15s; }
+.calc-btn:hover { background: #1a3d70; }
+.calc-result { background: #141824; border-radius: 8px; padding: 14px; margin-top: 14px; display: none; }
+.calc-result.show { display: block; }
+.result-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1e2840; font-size: 0.82rem; }
+.result-line:last-child { border-bottom: none; }
+.result-line .rl { color: #6a88aa; }
+.result-line .rv { color: #7ec8f7; font-weight: 700; }
+.result-line .rv.warn { color: #eec040; }
+.sched-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.sched-table th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .4px; color: #4a6a99; padding: 6px 8px; border-bottom: 1px solid #2a3550; text-align: left; }
+.sched-table td { font-size: 0.8rem; padding: 8px; border-bottom: 1px solid #1e2840; color: #9ab4d0; }
+.sched-table tr:last-child td { border-bottom: none; }
+.sched-table td:first-child { color: #7ec8f7; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="icon">🩻</div>
+  <div>
+    <h1>Body CT Protocols — Interactive Reference</h1>
+    <p>Source: BodyCTProtocols.pdf · 30 protocols · Omnipaque 350 · SMART PREP · ASIR/Volume ASIR</p>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPane('protocols')">Protocol Browser</div>
+  <div class="tab" onclick="showPane('decision')">Protocol Selector</div>
+  <div class="tab" onclick="showPane('checklist')">Checklist</div>
+  <div class="tab" onclick="showPane('reference')">Quick Reference</div>
+  <div class="tab" onclick="showPane('timeline')">Phase Timeline</div>
+  <div class="tab" onclick="showPane('reactions')">Reaction Card</div>
+  <div class="tab" onclick="showPane('calculator')">Dose Calculator</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANE 1 · PROTOCOL BROWSER
+══════════════════════════════════════════ -->
+<div id="protocols" class="pane active">
+  <p class="section-label">All Body CT Protocols — click a card to expand</p>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="num">22</div><div class="lbl">Protocols</div></div>
+    <div class="stat-card"><div class="num">100mL</div><div class="lbl">Std IV Contrast</div></div>
+    <div class="stat-card"><div class="num">3–5 mL/s</div><div class="lbl">Injection Rate</div></div>
+    <div class="stat-card"><div class="num">50 HU</div><div class="lbl">Liver SMART PREP</div></div>
+    <div class="stat-card"><div class="num">150 HU</div><div class="lbl">Aorta SMART PREP</div></div>
+  </div>
+
+  <div class="browser-top">
+    <input class="search-box" type="text" id="search" placeholder="Search protocols, organs, indications…" oninput="filterProtos()">
+    <div class="filter-btns">
+      <div class="fbtn on" data-cat="all" onclick="setCat(this)">All</div>
+      <div class="fbtn" data-cat="abdomen" onclick="setCat(this)">Abdomen</div>
+      <div class="fbtn" data-cat="liver" onclick="setCat(this)">Liver</div>
+      <div class="fbtn" data-cat="renal" onclick="setCat(this)">Renal</div>
+      <div class="fbtn" data-cat="vascular" onclick="setCat(this)">Vascular</div>
+      <div class="fbtn" data-cat="special" onclick="setCat(this)">Special</div>
+    </div>
+  </div>
+
+  <div class="proto-grid" id="proto-grid">
+
+    <!-- 1 ROUTINE ABD/PELVIS -->
+    <div class="proto-card" data-cat="abdomen" data-search="routine abdomen pelvis appendicitis diverticulitis portal venous" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0d2f5e;color:#7ec8f7;">1</div>
+        <div><div class="proto-title">Routine Abdomen/Pelvis</div><div class="proto-subtitle">Default abdomen exam · starting point for many studies</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-blue">Portal Venous</span>
+        <span class="tag t-green">Water Oral</span>
+        <span class="tag t-yellow">SMART PREP 50 HU</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><p>Appendicitis (with water + IV), diverticulitis, cervical/endometrial cancer staging, general abdominal pathology. Base protocol for many tailored exams.</p></div>
+        <div class="proto-section"><h4>Contrast</h4>
+          <ul><li>Oral: 800 mL water (default)</li><li>IV: Omnipaque 350 · 100 mL · 3–5 mL/sec</li></ul>
+        </div>
+        <div class="proto-section"><h4>Scan Method</h4>
+          <ul>
+            <li>Portal venous phase — SMART PREP, ROI over liver (50 HU above baseline), dome of liver → SP</li>
+            <li>Coronal + sagittal reformats, 3 mm reconstructions</li>
+          </ul>
+        </div>
+        <div class="proto-section"><h4>Notes</h4><p>Pediatric appendicitis: add oral contrast. Vaginal contrast (60–120 mL surgilube) for cervical/endometrial cancer.</p></div>
+      </div>
+    </div>
+
+    <!-- 2 ABD/PELVIS WITH DELAY -->
+    <div class="proto-card" data-cat="abdomen" data-search="abdomen pelvis delay pyelonephritis bleeding" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0d2f5e;color:#7ec8f7;">2</div>
+        <div><div class="proto-title">Abdomen/Pelvis with Delay</div><div class="proto-subtitle">Portal venous + 3-min delayed phase</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-blue">Portal Venous</span>
+        <span class="tag t-teal">3-min Delay</span>
+        <span class="tag t-yellow">SMART PREP</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul><li>Concern for pyelonephritis</li><li>Suspicion of non-GI bleeding following procedure</li></ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: 800 mL water</li><li>IV: Omnipaque 350 · 100 mL · 3–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4>
+          <ul>
+            <li>Portal venous phase — SMART PREP ROI liver (50 HU above baseline), dome → SP</li>
+            <li>Delay phase — 3 min post-contrast, dome → bottom of kidneys (extend through pelvis if bleeding concern)</li>
+            <li>Coronal + sagittal reformats of portal venous phase, 3 mm</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 NON CONTRAST ABD/PELVIS -->
+    <div class="proto-card" data-cat="abdomen" data-search="non contrast abdomen pelvis retroperitoneal hemorrhage" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#3b0e0e;color:#f07070;">3</div>
+        <div><div class="proto-title">Non-Contrast Abdomen/Pelvis</div><div class="proto-subtitle">No IV contrast · hemorrhage / contraindication</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-red">No IV Contrast</span>
+        <span class="tag t-gray">Retroperitoneal Hemorrhage</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul><li>Suspicion for retroperitoneal hemorrhage (anticoagulation/spontaneous)</li><li>Pathology requiring IV contrast, but contrast contraindicated (use positive oral contrast)</li></ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: None / Omnipaque 350 50 mL in 1000 mL / Barium (if iodine allergy)</li><li>No IV contrast</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul><li>Dome of liver → symphysis pubis</li><li>Coronal + sagittal reformats</li></ul></div>
+        <div class="proto-section"><h4>⚠ Do NOT Use For</h4><ul><li>Retroperitoneal hemorrhage from intervention/trauma (use IV contrast)</li><li>Renal stones (use Renal Stone protocol — lower dose)</li></ul></div>
+      </div>
+    </div>
+
+    <!-- 4 TRAUMA -->
+    <div class="proto-card" data-cat="abdomen" data-search="trauma portal venous delayed kidney bladder injury" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#3b0e0e;color:#f07070;">4</div>
+        <div><div class="proto-title">Trauma</div><div class="proto-subtitle">Portal venous + 4-min renal delay</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-red">Trauma</span>
+        <span class="tag t-blue">Portal Venous</span>
+        <span class="tag t-teal">4-min Delay</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 100 mL · 3–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4>
+          <ul>
+            <li>Portal venous phase — SMART PREP ROI liver (50 HU), liver → inferior pubic rami</li>
+            <li>Delayed scans through kidneys at 4 min; extend to SP if pelvic injury suspected</li>
+            <li>Coronal + sagittal reformats of portal venous phase</li>
+          </ul>
+        </div>
+        <div class="proto-section"><h4>Special Steps</h4><ul>
+          <li>Clamp Foley before scan</li>
+          <li>Renal injury: ensure collecting system opacified; repeat at 10 min if needed</li>
+          <li>Bladder injury suspected: perform CT Cystogram</li>
+          <li>Penetrating abdominal injury: add rectal contrast</li>
+          <li>Pelvic fractures: scan full abdomen + pelvis during delays</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 5 CT CYSTOGRAPHY -->
+    <div class="proto-card" data-cat="special" data-search="cystography bladder trauma leak foley" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#261a4a;color:#b090f0;">5</div>
+        <div><div class="proto-title">CT Cystography</div><div class="proto-subtitle">Trauma &amp; R/O bladder leak</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-purple">Bladder Distension</span>
+        <span class="tag t-teal">Foley Required</span>
+        <span class="tag t-red">Active Fill</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Procedure</h4>
+          <ul>
+            <li>Foley catheter required (cleared from urethral injury in trauma)</li>
+            <li>Inject 200–300 mL dilute contrast via Foley by gravity (2–3% iodine: 75–100 mL Omnipaque 350 in 1 L saline)</li>
+            <li>Scan lower abdomen + pelvis</li>
+            <li>Passive filling via IV not sufficient to exclude rupture</li>
+          </ul>
+        </div>
+        <div class="proto-section"><h4>What to Look For</h4>
+          <ul>
+            <li>Intraperitoneal extravasation: along gutters / between bowel loops</li>
+            <li>Extraperitoneal extravasation: anterior to bladder, abdominal wall, scrotum</li>
+          </ul>
+        </div>
+        <div class="proto-section"><h4>Notes</h4><p>For r/o leak: consider post-void imaging. Pre-filling images not needed if patient just had pelvic CT.</p></div>
+      </div>
+    </div>
+
+    <!-- 6 QUAD PHASE LIVER -->
+    <div class="proto-card" data-cat="liver" data-search="quad phase liver non contrast arterial portal venous equilibrium chemoembolization ablation" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0a3535;color:#40c8c8;">6</div>
+        <div><div class="proto-title">Quad Phase Liver (±Pelvis)</div><div class="proto-subtitle">Non-contrast · Arterial · Portal Venous · Equilibrium</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-teal">4 Phases</span>
+        <span class="tag t-blue">125 mL Contrast</span>
+        <span class="tag t-yellow">SMART PREP Aorta 150 HU</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>After chemoembolization or ablation of primary/metastatic liver malignancy</li>
+          <li>Follow-up of metastatic disease with prior high attenuation (calcifications, hemorrhage)</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 125 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4>
+          <ul>
+            <li>Pre-contrast — top → bottom of liver</li>
+            <li>Arterial phase — SMART PREP Aorta (150 HU), ≥25 sec delay, top → bottom liver. Goal: hepatic arterial opacification, minimal portal vein contrast</li>
+            <li>Portal venous phase — 80 sec delay, abdomen (±pelvis)</li>
+            <li>Equilibrium phase — 3 min delay, top of liver → bottom of kidneys</li>
+            <li>Coronal + sagittal reformats of arterial + portal venous phases</li>
+          </ul>
+        </div>
+        <div class="proto-section"><h4>⚠ Do NOT Use For</h4><ul>
+          <li>HCC/Cholangio surveillance without prior treatment → use Triple Phase</li>
+          <li>Characterization of indeterminate liver lesion → use Triple Phase</li>
+        </ul></div>
+        <div class="proto-section"><h4>Pelvis</h4><ul><li>Include if known pelvic pathology in primary liver malignancy OR for metastatic disease</li></ul></div>
+      </div>
+    </div>
+
+    <!-- 7 TRIPLE PHASE LIVER -->
+    <div class="proto-card" data-cat="liver" data-search="triple phase liver arterial portal venous equilibrium HCC surveillance cholangiocarcinoma" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0a3535;color:#40c8c8;">7</div>
+        <div><div class="proto-title">Triple Phase Liver (±Pelvis)</div><div class="proto-subtitle">Arterial · Portal Venous · Equilibrium</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-teal">3 Phases</span>
+        <span class="tag t-blue">125 mL</span>
+        <span class="tag t-green">HCC Surveillance</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Surveillance or follow-up for primary liver malignancy (HCC/Cholangio)</li>
+          <li>Characterization of previously indeterminate liver lesion</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 125 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4>
+          <ul>
+            <li>Arterial phase — SMART PREP Aorta (150 HU), ≥25 sec, top → bottom liver</li>
+            <li>Portal venous — 80 sec delay, abdomen (±pelvis)</li>
+            <li>Equilibrium — 3 min delay, top of liver → bottom of kidneys</li>
+            <li>Coronal + sagittal reformats of arterial + portal venous phases</li>
+          </ul>
+        </div>
+        <div class="proto-section"><h4>⚠ Do NOT Use For</h4><ul>
+          <li>After ablation/embolization → use Quad Phase (need non-contrast for high-attenuation material)</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 8 DUAL PHASE -->
+    <div class="proto-card" data-cat="liver" data-search="dual phase arterial portal venous liver metastases hypervascular renal melanoma neuroendocrine adrenal pancreatitis" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0a3535;color:#40c8c8;">8</div>
+        <div><div class="proto-title">Dual Phase (±Pelvis)</div><div class="proto-subtitle">Arterial · Portal Venous</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-teal">2 Phases</span>
+        <span class="tag t-blue">125 mL</span>
+        <span class="tag t-purple">Hypervascular Mets</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Hypervascular metastases: renal, melanoma, neuroendocrine (carcinoid, islet cell, pheo), GIST, sarcoma, thyroid</li>
+          <li>Pre-treatment staging of adrenal malignancy</li>
+          <li>Post-treatment follow-up for renal/pancreatic malignancy</li>
+          <li>Follow-up of previously characterized renal mass (size only)</li>
+          <li>Complications of pancreatitis</li>
+          <li>Liver transplant follow-up (non-HCC indication)</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 125 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4>
+          <ul>
+            <li>Arterial phase — SMART PREP Aorta (150 HU), ≥25 sec, top of liver → iliac crest</li>
+            <li>Portal venous — 80 sec delay, abdomen (±pelvis)</li>
+            <li>Coronal + sagittal reformats of portal venous phase</li>
+          </ul>
+        </div>
+        <div class="proto-section"><h4>⚠ Do NOT Use For</h4><ul>
+          <li>Breast or testicular cancer → use Routine Abdomen/Pelvis</li>
+          <li>Indeterminate liver lesion / primary hepatic malignancy → use Triple Phase</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 9 LIVER DONOR -->
+    <div class="proto-card" data-cat="liver" data-search="liver donor angiographic portal venous living related preoperative" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0a3535;color:#40c8c8;">9</div>
+        <div><div class="proto-title">Liver Donor</div><div class="proto-subtitle">Angiographic · Portal Venous · pre-op evaluation</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-teal">2 Phases</span>
+        <span class="tag t-blue">125 mL</span>
+        <span class="tag t-green">Coronal MIP</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indication</h4><p>Preoperative evaluation of living related liver donor</p></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 125 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Angiographic phase — top of liver → iliac crest</li>
+          <li>Portal venous — 80 sec delay, top of liver → iliac crest</li>
+          <li>Coronal + sagittal reformats of both phases</li>
+          <li>Coronal MIP of angiographic phase</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 10 ADRENAL MASS -->
+    <div class="proto-card" data-cat="renal" data-search="adrenal mass non contrast portal venous 15min delay adenoma paraganglioma" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#3b2c06;color:#eec040;">10</div>
+        <div><div class="proto-title">Adrenal Mass (±Pelvis)</div><div class="proto-subtitle">Non-contrast · Portal Venous · 15-min Delay</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-yellow">3 Phases</span>
+        <span class="tag t-teal">15-min Delay</span>
+        <span class="tag t-blue">Washout Analysis</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Known adrenal lesion incompletely characterized</li>
+          <li>Follow-up of indeterminate or benign adrenal lesion</li>
+          <li>Biochemical evidence of adrenal pathology</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Non-contrast — single breath-hold, liver dome → iliac crest (check images before continuing)</li>
+          <li>Portal venous — 80 sec delay, abdomen (±pelvis)</li>
+          <li>Delay phase — 15 min post-injection, top of liver → iliac crest</li>
+          <li>Coronal + sagittal reformats of portal venous phase</li>
+        </ul></div>
+        <div class="proto-section"><h4>Key Decision Point</h4><p>If non-contrast shows homogeneous lesion &lt;10 HU → likely adenoma → radiologist may stop exam (unless other abdomen/pelvis eval needed).</p></div>
+        <div class="proto-section"><h4>Notes</h4><ul>
+          <li>All phases must include aortic bifurcation (rule out paraganglioma)</li>
+          <li>Do NOT use to pre-op stage adrenal malignancy → use Dual Phase A/P</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 11 RENAL MASS -->
+    <div class="proto-card" data-cat="renal" data-search="renal mass non contrast corticomedullary nephrographic delayed Bosniak pyelonephritis abscess" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#3b2c06;color:#eec040;">11</div>
+        <div><div class="proto-title">Renal Mass (±Pelvis)</div><div class="proto-subtitle">Non-contrast · Corticomedullary · Nephrographic · Delayed</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-yellow">4 Phases</span>
+        <span class="tag t-teal">30s · 90s · 4-min</span>
+        <span class="tag t-blue">Low-dose Non-con</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Initial evaluation with symptoms worrisome for renal malignancy (no prior imaging)</li>
+          <li>Characterization of inadequately assessed or indeterminate renal lesion (Bosniak 2F)</li>
+          <li>First post-treatment scan for renal malignancy</li>
+          <li>Pre-treatment staging of known renal malignancy</li>
+          <li>High suspicion for complicated pyelonephritis (abscess/phlegmon)</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Non-contrast — top → bottom of kidneys (low-dose technique)</li>
+          <li>Corticomedullary phase — 30 sec delay, top of liver → bottom of kidneys</li>
+          <li>Nephrographic phase — 90 sec delay, abdomen (±pelvis)</li>
+          <li>Delayed phase — 4 min delay, top of liver → bottom of kidneys</li>
+          <li>Coronal + sagittal reformats of nephrographic phase</li>
+          <li>Coronal MIP of corticomedullary phase</li>
+        </ul></div>
+        <div class="proto-section"><h4>Notes</h4><ul>
+          <li>Medullary low-attenuation masses may be missed on corticomedullary phase alone</li>
+          <li>Non-contrast critical for abscess (&lt;10 HU enhancement) vs phlegmon differentiation</li>
+          <li>Pyelonephritis without complication → use Routine Abdomen/Pelvis</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 12 RENAL STONE -->
+    <div class="proto-card" data-cat="renal" data-search="renal stone ureteral colic non contrast low dose hydronephrosis UVJ" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#3b2c06;color:#eec040;">12</div>
+        <div><div class="proto-title">Renal Stone</div><div class="proto-subtitle">Non-contrast low-dose · No IV / No oral</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-red">No Contrast</span>
+        <span class="tag t-green">Low Dose</span>
+        <span class="tag t-blue">Non-contrast Only</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>History of renal/ureteral stones with symptoms consistent with renal colic</li>
+          <li>Follow-up stone burden in patient with known stones</li>
+          <li>High suspicion for renal/ureteral stones</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: None</li><li>IV: None</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Non-contrast — top of kidneys → SP using low-dose technique</li>
+          <li>Coronal + sagittal reformats</li>
+        </ul></div>
+        <div class="proto-section"><h4>Notes</h4><ul>
+          <li>Most ureteral stones are at UVJ — look for hydronephrosis, periureteral stranding, enlarged kidney</li>
+          <li>AIDS patients on protease inhibitors (Indinavir) may have non-opaque stones</li>
+          <li>If concern for other acute pathology → use Routine Abdomen/Pelvis</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 13 RENAL ARTERY STENOSIS -->
+    <div class="proto-card" data-cat="vascular" data-search="renal artery stenosis arterial nephrographic MIP shaded surface curved MPR" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#1e0d3b;color:#b090f0;">13</div>
+        <div><div class="proto-title">Renal Artery Stenosis</div><div class="proto-subtitle">Arterial · Nephrographic · 3D reconstructions</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-purple">2 Phases</span>
+        <span class="tag t-teal">Coronal MIP</span>
+        <span class="tag t-blue">3D VR</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Arterial — top of kidneys → SP</li>
+          <li>Nephrographic — 90 sec, top of kidneys → iliac crest</li>
+          <li>Coronal + sagittal reformats of arterial phase</li>
+          <li>Coronal MIP of arterial phase</li>
+        </ul></div>
+        <div class="proto-section"><h4>3D Reconstructions</h4><ul>
+          <li>Shaded surface display of renal arteries + aorta</li>
+          <li>Curved MPR of each renal artery</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 14 RENAL DONOR/UPJ -->
+    <div class="proto-card" data-cat="renal" data-search="renal donor UPJ living transplant arterial nephrographic delay collecting system measurements" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#3b2c06;color:#eec040;">14</div>
+        <div><div class="proto-title">Renal Donor / UPJ</div><div class="proto-subtitle">Non-contrast · Arterial · Nephrographic · 7–10 min Delay</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-yellow">4 Phases</span>
+        <span class="tag t-purple">Detailed Measurements</span>
+        <span class="tag t-teal">3D VR</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Non-contrast — top → bottom of kidneys (check: hydronephrosis in donor may require full A/P before contrast)</li>
+          <li>Arterial — top of kidneys → iliac bifurcation</li>
+          <li>Nephrographic — 90 sec, top of liver → SP</li>
+          <li>Delay — 7–10 min</li>
+          <li>Coronal + sagittal reformats of nephrographic phase</li>
+          <li>Coronal MIP of arterial phase</li>
+        </ul></div>
+        <div class="proto-section"><h4>Required Measurements</h4><ul>
+          <li>Total renal lengths</li>
+          <li>Renal artery lengths: aorta → hilum (+ first branch if proximal)</li>
+          <li>Right renal vein: hilum → IVC</li>
+          <li>Left renal vein: hilum → IVC; left lateral aortic border → hilum</li>
+        </ul></div>
+        <div class="proto-section"><h4>3D Reconstructions</h4><ul><li>Shaded surface displays of arterial, venous, and delayed phases</li></ul></div>
+      </div>
+    </div>
+
+    <!-- 15 RENAL RECIPIENT -->
+    <div class="proto-card" data-cat="renal" data-search="renal recipient transplant arterial venous iliac" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#3b2c06;color:#eec040;">15</div>
+        <div><div class="proto-title">Renal Recipient</div><div class="proto-subtitle">Arterial · 2-min Venous</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-yellow">2 Phases</span>
+        <span class="tag t-teal">Coronal MIP</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Arterial — top of kidneys → SP</li>
+          <li>Venous — 2 min delay, iliac crest → SP</li>
+          <li>Coronal + sagittal reformats + Coronal MIP of arterial phase</li>
+          <li>3D: Shaded surface display of arterial phase</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 16 UROGRAM -->
+    <div class="proto-card" data-cat="renal" data-search="urogram hematuria urothelial malignancy nephrographic excretory prone 10 min" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#3b2c06;color:#eec040;">16</div>
+        <div><div class="proto-title">Urogram (CT Urography)</div><div class="proto-subtitle">Non-contrast · Nephrographic · Excretory (prone 10 min)</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-yellow">3 Phases</span>
+        <span class="tag t-blue">Prone Excretory</span>
+        <span class="tag t-green">250 mL Saline Flush</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Hematuria workup</li>
+          <li>Known/suspected urothelial malignancy (not previously treated / incompletely evaluated)</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul>
+          <li>Patient drinks 32 oz water on arrival</li>
+          <li>IV: Omnipaque 350 · 100 mL + 250 mL normal saline flush</li>
+        </ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Non-contrast — top → bottom of kidneys (low dose)</li>
+          <li>Nephrographic — 90 sec, dome of liver → SP</li>
+          <li>Excretory — 10 min delay, prone position, top of kidneys → SP</li>
+          <li>Coronal + sagittal reformats + MIP of both phases</li>
+          <li>3D: Shaded surface display of collecting systems; Thick MIP</li>
+        </ul></div>
+        <div class="proto-section"><h4>Notes</h4><ul>
+          <li>Post-treatment surveillance → use Urogram Post Treatment</li>
+          <li>If little excretion on delayed: consider rescan or follow-up KUB</li>
+          <li>Patient &lt;50 yrs, ordered by non-urologist: discuss stopping after non-con if stones found</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 17 PANCREATIC MASS -->
+    <div class="proto-card" data-cat="abdomen" data-search="pancreatic mass arterial portal venous staging duodenum distension IPMN" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0d2f5e;color:#7ec8f7;">17</div>
+        <div><div class="proto-title">Pancreatic Mass (±Pelvis)</div><div class="proto-subtitle">Arterial · Portal Venous · 32 oz water + large IV</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-blue">2 Phases</span>
+        <span class="tag t-green">125 mL IV</span>
+        <span class="tag t-yellow">Duodenum Distension</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Initial evaluation: symptoms worrisome for pancreatic malignancy, no prior imaging</li>
+          <li>Initial staging / characterization of pancreatic lesion inadequately imaged</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul>
+          <li>Oral: Water (+ 32 oz on arrival) — OPACIFICATION AND DISTENTION OF DUODENUM IS VERY HELPFUL</li>
+          <li>IV: Omnipaque 350 · 125 mL · 4–5 mL/sec</li>
+        </ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Try to scan entire pancreas in single breath-hold for all phases</li>
+          <li>Arterial — top of liver → iliac crest</li>
+          <li>Portal venous — 80 sec delay, abdomen (±pelvis)</li>
+          <li>Coronal + sagittal reformats of arterial + portal venous phases</li>
+        </ul></div>
+        <div class="proto-section"><h4>⚠ Do NOT Use For</h4><ul>
+          <li>Routine pancreatitis → Routine A/P</li>
+          <li>Pancreatitis complications → Dual Phase</li>
+          <li>Post-pancreatic surgery follow-up → Dual Phase</li>
+          <li>Follow-up size of pancreatic cystic lesions of low malignant potential → Routine A/P</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 18 ENTEROGRAPHY IBD -->
+    <div class="proto-card" data-cat="abdomen" data-search="enterography IBD inflammatory bowel disease Crohn Volumen enteric phase adhesions" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0d2f5e;color:#7ec8f7;">18</div>
+        <div><div class="proto-title">Enterography — IBD</div><div class="proto-subtitle">Volumen oral · Enteric 50 sec · IBD / adhesions</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-blue">1 Phase</span>
+        <span class="tag t-green">Volumen 3×450 mL</span>
+        <span class="tag t-yellow">50-sec Enteric</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Inflammatory bowel disease or malabsorptive disorder</li>
+          <li>Intermittent bowel obstruction — evaluate for adhesions</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul>
+          <li>Oral: VoLumen 0.1% v/v — 3 bottles × 450 mL (60 min prior / 40 min prior / 20 min prior + 400 mL water at table)</li>
+          <li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li>
+        </ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Enteric phase — 50 sec delay, liver dome → SP</li>
+          <li>Coronal + sagittal reformats of enteric phase</li>
+        </ul></div>
+        <div class="proto-section"><h4>⚠ Do NOT Use For</h4><ul>
+          <li>GI bleed or bowel tumor → Enterography GI Bleed/Tumor</li>
+          <li>Acute small bowel obstruction → Routine A/P</li>
+          <li>Consider MR enterography for young patients / multiple prior exams (discuss with ordering physician)</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 19 ENTEROGRAPHY GI BLEED -->
+    <div class="proto-card" data-cat="abdomen" data-search="enterography GI bleed tumor small bowel GIST obscure Volumen enteric delay" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0d2f5e;color:#7ec8f7;">19</div>
+        <div><div class="proto-title">Enterography — GI Bleed/Tumor</div><div class="proto-subtitle">Volumen · Enteric 50 sec · 2-min Delay</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-blue">2 Phases</span>
+        <span class="tag t-green">Volumen</span>
+        <span class="tag t-red">Obscure GI Bleed</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Obscure gastrointestinal bleeding (not seen on upper or lower endoscopy)</li>
+          <li>Suspicion for or history of small bowel tumor</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul>
+          <li>Oral: VoLumen 0.1% v/v — 3 × 450 mL</li>
+          <li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li>
+        </ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Enteric phase — 50 sec, liver dome → SP</li>
+          <li>Delay phase — 2 min, liver dome → SP</li>
+          <li>Coronal + sagittal reformats of enteric phase</li>
+        </ul></div>
+        <div class="proto-section"><h4>⚠ Do NOT Use For</h4><ul>
+          <li>IBD → Enterography IBD</li>
+          <li>Acute GI bleeding (emergent/inpatient) → Mesenteric Ischemia protocol</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 20 MESENTERIC ISCHEMIA -->
+    <div class="proto-card" data-cat="vascular" data-search="mesenteric ischemia acute GI bleed arterial venous Coronal MIP" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#1e0d3b;color:#b090f0;">20</div>
+        <div><div class="proto-title">Mesenteric Ischemia</div><div class="proto-subtitle">Arterial · Venous 90 sec · Coronal MIP</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-purple">2 Phases</span>
+        <span class="tag t-red">Acute Ischemia</span>
+        <span class="tag t-teal">Coronal MIP</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Indications</h4><ul>
+          <li>Concern for acute mesenteric ischemia</li>
+          <li>Suspected acute gastrointestinal bleeding</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water 800 mL</li><li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Arterial — liver dome → SP</li>
+          <li>Venous — 90 sec delay, liver dome → SP</li>
+          <li>Coronal + sagittal reformats of arterial + venous phases</li>
+          <li>Coronal MIP of enteric phase</li>
+        </ul></div>
+        <div class="proto-section"><h4>Notes</h4><p>This protocol does NOT actively distend small bowel — limited for soft-tissue mass evaluation. Do NOT use for IBD or small bowel tumor.</p></div>
+      </div>
+    </div>
+
+    <!-- 21 AORTIC DISSECTION -->
+    <div class="proto-card" data-cat="vascular" data-search="aortic dissection non contrast arterial delay intramural hematoma 3D shaded surface" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#1e0d3b;color:#b090f0;">21</div>
+        <div><div class="proto-title">Aortic Dissection</div><div class="proto-subtitle">Non-contrast · Arterial (apices→SP) · 4-min organ perfusion</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-purple">3 Phases</span>
+        <span class="tag t-red">No Oral Contrast</span>
+        <span class="tag t-yellow">SMART PREP Arch 150 HU</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Contrast</h4><ul>
+          <li>Oral: None (interferes with 3D reconstruction)</li>
+          <li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li>
+        </ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Non-contrast — top of arch → diaphragm (intramural hematoma may not be visible with contrast)</li>
+          <li>Arterial — SMART PREP aortic arch (150 HU), apices → SP</li>
+          <li>Delays — 4 min, dome of liver through kidneys (organ perfusion)</li>
+          <li>Coronal + sagittal reformats + Coronal MIP of arterial phase</li>
+          <li>3D: Shaded surface display of aorta + branch vessels</li>
+        </ul></div>
+        <div class="proto-section"><h4>⚠ Critical Note</h4><p>If aortic dissection found on abdominal scan → consult radiologist re: immediate chest CT.</p></div>
+      </div>
+    </div>
+
+    <!-- 22 AORTIC ANEURYSM PRE EVT -->
+    <div class="proto-card" data-cat="vascular" data-search="aortic aneurysm pre EVT endovascular SMART PREP measurements iliac AAA" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#1e0d3b;color:#b090f0;">22</div>
+        <div><div class="proto-title">Aortic Aneurysm — Pre-EVT</div><div class="proto-subtitle">Arterial · 4-min Delay · Detailed measurements</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-purple">2 Phases</span>
+        <span class="tag t-red">Stable Pts Only</span>
+        <span class="tag t-teal">AAA Measurements</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: None or Water 800 mL</li><li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Arterial — SMART PREP abdominal aorta (150 HU), liver dome → SP</li>
+          <li>Delays — 4 min, liver + kidneys</li>
+          <li>Coronal + sagittal reformats + Coronal MIP of arterial phase</li>
+          <li>3D: Shaded surface display of aorta + branch vessels</li>
+        </ul></div>
+        <div class="proto-section"><h4>Required Measurements</h4><ul>
+          <li>Diameter adventitia-to-adventitia: max aorta at lower renal artery, 1 cm below, 2 cm below, widest point</li>
+          <li>Minimum diameters: each common iliac, each external iliac, common femorals at inguinal ligament</li>
+          <li>Lengths: lower renal artery → neck of aneurysm; aneurysmal segment; aortic bifurcation → each common iliac bifurcation</li>
+        </ul></div>
+        <div class="proto-section"><h4>⚠ Note</h4><p>Hemodynamically unstable patients → OR directly. Quick non-contrast may be diagnostic if patient becomes unstable in CT.</p></div>
+      </div>
+    </div>
+
+    <!-- 23 AORTIC ANEURYSM POST EVT -->
+    <div class="proto-card" data-cat="vascular" data-search="aortic aneurysm post EVT endovascular stent non contrast arterial delayed endoleak" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#1e0d3b;color:#b090f0;">23</div>
+        <div><div class="proto-title">Aortic Aneurysm — Post-EVT</div><div class="proto-subtitle">Non-contrast · Arterial · 4-min Delayed (endoleak)</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-purple">3 Phases</span>
+        <span class="tag t-red">Endoleak Detection</span>
+        <span class="tag t-yellow">Same Parameters All Phases</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: None or Water</li><li>IV: Omnipaque 350 · 100 mL · 4–5 mL/sec</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Non-contrast — dome → SP (assess pre-existing high density: calcifications, prior embolization)</li>
+          <li>Arterial — SMART PREP abdominal aorta (150 HU), liver dome → SP</li>
+          <li>Delayed — 4 min, liver dome → SP (same parameters as non-contrast — for delayed endoleak)</li>
+          <li>Coronal + sagittal reformats + Coronal MIP of arterial phase</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 24 LOWER EXTREMITY RUN-OFF -->
+    <div class="proto-card" data-cat="vascular" data-search="lower extremity run off peripheral vascular disease HiRes ASIR arterial diaphragm toes" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#1e0d3b;color:#b090f0;">24</div>
+        <div><div class="proto-title">Lower Extremity Run-Off</div><div class="proto-subtitle">Peripheral vascular disease · Diaphragm → toes</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-purple">2 Phases</span>
+        <span class="tag t-blue">HiRes HD Mode</span>
+        <span class="tag t-teal">ASIR 30%</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Contrast</h4><ul><li>Oral: Water</li><li>IV: 4–5 mL/sec (125 mL)</li></ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Non-contrast — diaphragmatic hiatus → toes</li>
+          <li>Arterial — HiRes HD mode with Volume ASIR 30%</li>
+          <li>SMART PREP over knees — trigger at first blush of contrast (do NOT use ROI)</li>
+          <li>Coverage: diaphragmatic hiatus → toes</li>
+          <li>Coronal + sagittal reformats + Coronal MIP of arterial phase</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- 25 CT COLONOGRAPHY -->
+    <div class="proto-card" data-cat="special" data-search="colonography colonoscopy CO2 insufflation supine prone stool tagging Tagitol gastrograffin" onclick="toggleCard(this)">
+      <div class="proto-head">
+        <div class="proto-num" style="background:#0a3535;color:#40c8c8;">25</div>
+        <div><div class="proto-title">CT Colonography</div><div class="proto-subtitle">CO₂ insufflation · Supine + Prone · Low mAs</div></div>
+      </div>
+      <div class="proto-tags">
+        <span class="tag t-teal">No IV (default)</span>
+        <span class="tag t-green">CO₂ at 25 mmHg</span>
+        <span class="tag t-yellow">Stool Tagging</span>
+      </div>
+      <div class="proto-body">
+        <div class="proto-section"><h4>Prep</h4><ul>
+          <li>Dry prep preferred (fleet soda/clean prep)</li>
+          <li>Stool/fluid tagging: Tagitol with breakfast, lunch, dinner (day before); 60 cc gastrograffin night before</li>
+          <li>Bowel prep: night before + morning of procedure</li>
+          <li>1 mg glucagon SC 10 min prior to scanning</li>
+        </ul></div>
+        <div class="proto-section"><h4>Contrast</h4><ul><li>No oral contrast</li><li>No IV contrast (unless radiologist indicates otherwise)</li></ul></div>
+        <div class="proto-section"><h4>Procedure</h4><ul>
+          <li>Lateral decubitus: place rectal tube, inflate balloon cuff</li>
+          <li>Start insufflation prone → right decubitus → supine → left side</li>
+          <li>CO₂ autoinsufflator at 25 mmHg pressure limit (usual volume 4–6 L)</li>
+          <li>Scout to ensure adequate insufflation before scanning</li>
+        </ul></div>
+        <div class="proto-section"><h4>Scan Method</h4><ul>
+          <li>Scan supine + prone</li>
+          <li>Low mAs: 100 mA if BMI &lt;40; 150 mA if BMI &gt;40</li>
+          <li>Send data to 3D workstation</li>
+          <li>At end: cut tubing before removing rectal catheter for immediate relief</li>
+        </ul></div>
+      </div>
+    </div>
+
+  </div><!-- end proto-grid -->
+</div><!-- end protocols pane -->
+
+<!-- ══════════════════════════════════════════
+     PANE 2 · DECISION TREE / PROTOCOL SELECTOR
+══════════════════════════════════════════ -->
+<div id="decision" class="pane">
+  <p class="section-label">Protocol Selector — follow the tree to find the right protocol</p>
+
+  <div id="tree-container">
+  <div class="tree">
+
+    <!-- QUESTION 1 -->
+    <div class="tree-section">
+      <h3>Step 1 — What region needs imaging?</h3>
+      <div class="dt-row">
+        <div class="dt-group"><div class="dt-node" onclick="highlight('liver-branch')">Liver / Biliary</div></div>
+        <div class="dt-group"><div class="dt-node" onclick="highlight('renal-branch')">Kidney / Adrenal / Ureter</div></div>
+        <div class="dt-group"><div class="dt-node" onclick="highlight('vasc-branch')">Aorta / Vessels</div></div>
+        <div class="dt-group"><div class="dt-node" onclick="highlight('bowel-branch')">Bowel / GI Tract</div></div>
+        <div class="dt-group"><div class="dt-node" onclick="highlight('gen-branch')">General Abdomen/Pelvis</div></div>
+      </div>
+    </div>
+
+    <!-- LIVER BRANCH -->
+    <div class="tree-section" id="liver-branch" style="display:none">
+      <h3>Liver / Biliary — Step 2</h3>
+      <div class="dt-row">
+        <div class="dt-group">
+          <div class="dt-label">Prior ablation / embolization?</div>
+          <div class="dt-node leaf">Yes → Quad Phase Liver</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">HCC/Cholangio surveillance or indeterminate lesion?</div>
+          <div class="dt-node leaf">Yes → Triple Phase Liver</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Hypervascular mets / pancreatitis complications?</div>
+          <div class="dt-node leaf">Yes → Dual Phase</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Living related liver donor?</div>
+          <div class="dt-node leaf">Yes → Liver Donor</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RENAL BRANCH -->
+    <div class="tree-section" id="renal-branch" style="display:none">
+      <h3>Kidney / Adrenal / Ureter — Step 2</h3>
+      <div class="dt-row">
+        <div class="dt-group">
+          <div class="dt-label">Renal colic / stone?</div>
+          <div class="dt-node leaf">Yes → Renal Stone (no contrast)</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Renal mass / complex cyst / abscess?</div>
+          <div class="dt-node leaf">Yes → Renal Mass (4-phase)</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Adrenal lesion characterization?</div>
+          <div class="dt-node leaf">Yes → Adrenal Mass (15-min delay)</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Hematuria / urothelial malignancy?</div>
+          <div class="dt-node leaf">Yes → CT Urogram</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Renal artery stenosis?</div>
+          <div class="dt-node leaf">Yes → Renal Artery Stenosis</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Donor / UPJ evaluation?</div>
+          <div class="dt-node leaf">Yes → Renal Donor / UPJ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VASCULAR BRANCH -->
+    <div class="tree-section" id="vasc-branch" style="display:none">
+      <h3>Aorta / Vessels — Step 2</h3>
+      <div class="dt-row">
+        <div class="dt-group">
+          <div class="dt-label">Aortic dissection?</div>
+          <div class="dt-node leaf">Yes → Aortic Dissection (3-phase, no oral)</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Known/suspected AAA — pre-treatment?</div>
+          <div class="dt-node leaf">Yes → AAA Pre-EVT</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Post endovascular stent repair follow-up?</div>
+          <div class="dt-node leaf">Yes → AAA Post-EVT (endoleak)</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Peripheral vascular disease?</div>
+          <div class="dt-node leaf">Yes → Lower Extremity Run-Off</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Mesenteric ischemia / acute GI bleed?</div>
+          <div class="dt-node leaf">Yes → Mesenteric Ischemia</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOWEL BRANCH -->
+    <div class="tree-section" id="bowel-branch" style="display:none">
+      <h3>Bowel / GI — Step 2</h3>
+      <div class="dt-row">
+        <div class="dt-group">
+          <div class="dt-label">IBD / Crohn / malabsorption / adhesions?</div>
+          <div class="dt-node leaf">Yes → Enterography IBD (Volumen, 1-phase)</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Obscure GI bleed or small bowel tumor?</div>
+          <div class="dt-node leaf">Yes → Enterography GI Bleed/Tumor</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Polyp screening (asymptomatic)?</div>
+          <div class="dt-node leaf">Yes → CT Colonography (CO₂)</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Colonic anastomosis leak check (pelvic)?</div>
+          <div class="dt-node leaf">Yes → Rectal Contrast Pelvis</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Colonic anastomosis above pelvis / trauma?</div>
+          <div class="dt-node leaf">Yes → Rectal Contrast A/P</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Pancreatic mass / staging?</div>
+          <div class="dt-node leaf">Yes → Pancreatic Mass (arterial + PV)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERAL BRANCH -->
+    <div class="tree-section" id="gen-branch" style="display:none">
+      <h3>General Abdomen/Pelvis — Step 2</h3>
+      <div class="dt-row">
+        <div class="dt-group">
+          <div class="dt-label">Routine workup, ED, appendicitis, diverticulitis?</div>
+          <div class="dt-node leaf">Yes → Routine Abdomen/Pelvis</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Pyelonephritis or post-procedure bleeding?</div>
+          <div class="dt-node leaf">Yes → A/P with Delay</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Trauma?</div>
+          <div class="dt-node leaf">Yes → Trauma (PV + 4-min renal delay)</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">IV contrast contraindicated?</div>
+          <div class="dt-node leaf">Yes → Non-Contrast A/P</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Bladder injury suspected?</div>
+          <div class="dt-node leaf">Yes → CT Cystography</div>
+        </div>
+        <div class="dt-group">
+          <div class="dt-label">Isolated pelvic pathology?</div>
+          <div class="dt-node leaf">Yes → CT Pelvis Without Abdomen</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;padding:14px 18px;background:#1a2035;border:1px solid #2a3550;border-radius:10px;font-size:0.8rem;color:#6a88aa;">
+      <strong style="color:#7ec8f7;">Tips</strong> &nbsp;·&nbsp; Click a region above to expand its branch.
+      All protocols use Omnipaque 350 (100 mL standard, 125 mL for multiphase liver / pancreatic).
+      SMART PREP trigger: <strong>50 HU (liver)</strong> or <strong>150 HU (aorta)</strong>.
+      Remember the 5–10 sec scanner delay after initiating SMART PREP — start scan <em>immediately</em> when threshold is met.
+    </div>
+
+  </div><!-- end tree -->
+  </div><!-- end tree-container -->
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANE 3 · CHECKLIST
+══════════════════════════════════════════ -->
+<div id="checklist" class="pane">
+  <p class="section-label">Protocol Execution Checklist — from the source guidelines</p>
+  <div class="prog-wrap" style="margin-bottom:6px;"><div class="prog-bar" id="master-bar" style="width:0%"></div></div>
+  <div class="prog-lbl" id="master-lbl" style="margin-bottom:20px;">0 of 0 complete</div>
+
+  <div class="cl-grid">
+
+    <div class="cl-card">
+      <h3 style="color:#7ec8f7;">🔵 Patient Preparation</h3>
+      <div class="cl-item"><input type="checkbox" id="p1"><label for="p1">Patient fasted — clear liquids only ≥4 hrs before (NPO not required; keep well hydrated)</label></div>
+      <div class="cl-item"><input type="checkbox" id="p2"><label for="p2">Patient identity confirmed (2 identifiers)</label></div>
+      <div class="cl-item"><input type="checkbox" id="p3"><label for="p3">Clinical indication reviewed; radiologist has protocolled the exam</label></div>
+      <div class="cl-item"><input type="checkbox" id="p4"><label for="p4">Allergy history checked (iodine, contrast agents)</label></div>
+      <div class="cl-item"><input type="checkbox" id="p5"><label for="p5">Renal function checked (creatinine/eGFR) if IV contrast required</label></div>
+      <div class="cl-item"><input type="checkbox" id="p6"><label for="p6">Metformin management confirmed (withhold if eGFR &lt;30 or as per guideline)</label></div>
+      <div class="cl-item"><input type="checkbox" id="p7"><label for="p7">Oral contrast type selected and administered on schedule (Water / VoLumen / Barium / Iodinated)</label></div>
+      <div class="cl-item"><input type="checkbox" id="p8"><label for="p8">IV access secured (18–20 gauge angiocath, antecubital vein preferred)</label></div>
+      <div class="cl-item"><input type="checkbox" id="p9"><label for="p9">Informed consent obtained if required (contrast, special procedures)</label></div>
+    </div>
+
+    <div class="cl-card">
+      <h3 style="color:#eec040;">🟡 Scanner Setup</h3>
+      <div class="cl-item"><input type="checkbox" id="s1"><label for="s1">Correct protocol selected on scanner (verified against radiologist order)</label></div>
+      <div class="cl-item"><input type="checkbox" id="s2"><label for="s2">kVp set per protocol; mA table reviewed after topogram</label></div>
+      <div class="cl-item"><input type="checkbox" id="s3"><label for="s3">If mA &gt;570 at 120 kV → decrease rotation speed (or keep 0.5 sec). HiRes HD: max mA &lt;420</label></div>
+      <div class="cl-item"><input type="checkbox" id="s4"><label for="s4">For patients &lt;20 yrs: minimum mA set to 80 (or per pediatric protocol)</label></div>
+      <div class="cl-item"><input type="checkbox" id="s5"><label for="s5">Topogram (scout) obtained; scan range landmarks defined</label></div>
+      <div class="cl-item"><input type="checkbox" id="s6"><label for="s6">SMART PREP ROI placed at correct vessel (liver 50 HU / aorta 150 HU)</label></div>
+      <div class="cl-item"><input type="checkbox" id="s7"><label for="s7">For multiphase studies: all phases have IDENTICAL parameters set</label></div>
+      <div class="cl-item"><input type="checkbox" id="s8"><label for="s8">Power injector primed and connected; tubing cleared of air</label></div>
+      <div class="cl-item"><input type="checkbox" id="s9"><label for="s9">Contrast volume and injection rate confirmed (e.g. 100 mL Omnipaque 350 at 3–5 mL/sec)</label></div>
+    </div>
+
+    <div class="cl-card">
+      <h3 style="color:#5dcc88;">🟢 During Scan</h3>
+      <div class="cl-item"><input type="checkbox" id="d1"><label for="d1">Patient instructed on breath-hold technique (medium breath in, same depth each phase)</label></div>
+      <div class="cl-item"><input type="checkbox" id="d2"><label for="d2">Patient hyperventilated before multiphase breath-hold if needed</label></div>
+      <div class="cl-item"><input type="checkbox" id="d3"><label for="d3">Scan initiated IMMEDIATELY when SMART PREP threshold reached (accounts for 5–10 sec machine delay)</label></div>
+      <div class="cl-item"><input type="checkbox" id="d4"><label for="d4">Patient monitored continuously during and after contrast injection</label></div>
+      <div class="cl-item"><input type="checkbox" id="d5"><label for="d5">Foley clamped if required (trauma protocol)</label></div>
+      <div class="cl-item"><input type="checkbox" id="d6"><label for="d6">Adrenal Mass: non-contrast images checked by radiologist before proceeding with contrast</label></div>
+    </div>
+
+    <div class="cl-card">
+      <h3 style="color:#f07070;">🔴 Post-Scan</h3>
+      <div class="cl-item"><input type="checkbox" id="q1"><label for="q1">Images reviewed at console for motion artifact and technical quality</label></div>
+      <div class="cl-item"><input type="checkbox" id="q2"><label for="q2">Retrospective reconstructions performed promptly (&lt;24–48 hrs; raw data saved temporarily)</label></div>
+      <div class="cl-item"><input type="checkbox" id="q3"><label for="q3">MPR (coronal + sagittal) reformats sent with appropriate slice thickness (3 mm standard)</label></div>
+      <div class="cl-item"><input type="checkbox" id="q4"><label for="q4">3D reconstructions / Coronal MIP sent to PACS as required by protocol</label></div>
+      <div class="cl-item"><input type="checkbox" id="q5"><label for="q5">All reconstructed series pushed to PACS</label></div>
+      <div class="cl-item"><input type="checkbox" id="q6"><label for="q6">Contrast reaction monitoring completed (observe ≥30 min post-contrast)</label></div>
+      <div class="cl-item"><input type="checkbox" id="q7"><label for="q7">Radiation dose (CTDI / DLP) recorded in RIS/PACS</label></div>
+      <div class="cl-item"><input type="checkbox" id="q8"><label for="q8">Critical or urgent findings communicated to referring physician immediately</label></div>
+      <div class="cl-item"><input type="checkbox" id="q9"><label for="q9">Patient discharged with post-contrast/post-procedure instructions</label></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANE 4 · QUICK REFERENCE
+══════════════════════════════════════════ -->
+<div id="reference" class="pane">
+  <p class="section-label">Quick Reference — CT Densities · Contrast · Oral Contrast Timing · SMART PREP</p>
+
+  <div class="ref-grid">
+
+    <div class="ref-card">
+      <h3>CT Densities (Hounsfield Units)</h3>
+      <table class="ref-table">
+        <thead><tr><th>Tissue / Finding</th><th>HU Range</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Air</td><td style="color:#b090f0;">Very negative</td><td>Lungs, bowel gas</td></tr>
+          <tr><td>Fat</td><td style="color:#b090f0;">Negative HU</td><td>Subcutaneous, mesenteric</td></tr>
+          <tr><td>Fluid</td><td style="color:#7ec8f7;">0–20 HU</td><td>Ascites, simple cyst</td></tr>
+          <tr><td>Abscess</td><td style="color:#7ec8f7;">0–40 HU</td><td>Enhancement &lt;10 HU</td></tr>
+          <tr><td>Parenchyma (non-con)</td><td style="color:#5dcc88;">40–70 HU</td><td>Liver, spleen, kidney</td></tr>
+          <tr><td>Bone</td><td style="color:#eec040;">&gt;500 HU</td><td>Cortical bone</td></tr>
+          <tr><td>Calcified Lung Nodule</td><td style="color:#eec040;">&gt;200 HU</td><td>Benign calcification criterion</td></tr>
+          <tr><td>Adrenal adenoma (likely)</td><td style="color:#5dcc88;">&lt;10 HU non-con</td><td>Homogeneous → likely adenoma → stop exam</td></tr>
+          <tr><td>SMART PREP — Liver</td><td style="color:#7ec8f7;">50 HU above baseline</td><td>Portal venous phase trigger</td></tr>
+          <tr><td>SMART PREP — Aorta</td><td style="color:#7ec8f7;">150 HU</td><td>Arterial phase trigger (aneurysm, dissection)</td></tr>
+          <tr><td>SMART PREP — Aorta (cardiac low output)</td><td style="color:#7ec8f7;">150 HU</td><td>Use for poor cardiac output patients</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ref-card">
+      <h3>Oral Contrast Guide</h3>
+      <table class="ref-table">
+        <thead><tr><th>Agent</th><th>Dose / Timing</th><th>Indications</th></tr></thead>
+        <tbody>
+          <tr><td><strong>None</strong></td><td>—</td><td>Renal stone, CT colonography, acute SBO, aortic procedures</td></tr>
+          <tr><td><strong>Water</strong></td><td>400 mL at 20 min; 400 mL at table</td><td>Routine A/P, CTAs, HCC screen, CTU, adrenal/renal mass, pancreatic mass</td></tr>
+          <tr><td><strong>VoLumen / Breeza</strong></td><td>3 × 450–500 mL: 60/40/20 min + 400 mL water at table</td><td>IBD, small bowel mass, GI bleed, malabsorption, CTA mesenteric</td></tr>
+          <tr><td><strong>Barium 2.1%</strong></td><td>225 mL at 60 min; 225 mL at 30 min + 400 mL water</td><td>Iodine allergy requiring positive oral contrast</td></tr>
+          <tr><td><strong>Iodinated (Omnipaque)</strong></td><td>50 mL in 1000 mL: 500 mL at 60 min; 500 mL at 30 min</td><td>Suspected proximal bowel perforation/leak, non-acute SBO transit, no IV contrast possible</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ref-card">
+      <h3>IV Contrast Summary</h3>
+      <table class="ref-table">
+        <thead><tr><th>Protocol</th><th>Volume</th><th>Rate</th></tr></thead>
+        <tbody>
+          <tr><td>Routine A/P · Trauma · Non-con A/P · Adrenal · Renal Mass · Renal Stone · Renal Art Stenosis · Renal Donor · Renal Recipient · Urogram · Mesenteric Ischemia · Rectal Contrast · CT Pelvis · Aortic Dissection · Pre/Post EVT</td><td><span class="badge b-blue">100 mL</span></td><td>3–5 mL/s</td></tr>
+          <tr><td>Quad Phase Liver · Triple Phase Liver · Dual Phase · Liver Donor · Pancreatic Mass</td><td><span class="badge b-yellow">125 mL</span></td><td>4–5 mL/s</td></tr>
+          <tr><td>Urogram (saline flush)</td><td><span class="badge b-green">+250 mL NS</span></td><td>immediately after contrast</td></tr>
+          <tr><td>Lower Extremity Run-Off</td><td>125 mL</td><td>4–5 mL/s</td></tr>
+          <tr><td>CT Cystography bladder fill</td><td>200–300 mL dilute (2–3%)</td><td>Gravity via Foley</td></tr>
+          <tr><td>Renal Stone / CT Colonography</td><td colspan="2" style="color:#f07070;">No IV contrast</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ref-card">
+      <h3>Phase Timing Reference</h3>
+      <table class="ref-table">
+        <thead><tr><th>Phase</th><th>Delay</th><th>Protocols</th></tr></thead>
+        <tbody>
+          <tr><td>Arterial (SMART PREP)</td><td>≥25 sec (≥35 sec 4-slice)</td><td>Liver phases, Renal Artery Stenosis, Aortic, Pancreatic Mass</td></tr>
+          <tr><td>Enteric</td><td>50 sec</td><td>Enterography IBD, GI Bleed/Tumor</td></tr>
+          <tr><td>Portal Venous</td><td>SMART PREP 50 HU liver</td><td>Routine A/P, Trauma, most protocols</td></tr>
+          <tr><td>Venous</td><td>80–90 sec</td><td>Most multi-phase protocols</td></tr>
+          <tr><td>Corticomedullary</td><td>30 sec</td><td>Renal Mass</td></tr>
+          <tr><td>Nephrographic</td><td>90 sec</td><td>Renal Mass, Renal Donor, Renal Artery Stenosis, Urogram</td></tr>
+          <tr><td>Delay (renal/liver)</td><td>3–4 min</td><td>A/P with Delay, Renal Mass, Aortic Dissection, Trauma</td></tr>
+          <tr><td>Delay (renal collecting)</td><td>7–10 min</td><td>Renal Donor/UPJ</td></tr>
+          <tr><td>Excretory</td><td>10 min (prone)</td><td>Urogram</td></tr>
+          <tr><td>Adrenal washout</td><td>15 min</td><td>Adrenal Mass</td></tr>
+          <tr><td>Equilibrium</td><td>3 min</td><td>Triple/Quad Phase Liver</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ref-card" style="grid-column: 1 / -1;">
+      <h3>Oral Contrast Problem-Solving (from source guidelines)</h3>
+      <table class="ref-table">
+        <thead><tr><th>#</th><th>Problem</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Bowel loops not opacified</td><td>Distinguish from pathology using repeat imaging after positional changes or delayed imaging</td></tr>
+          <tr><td>2</td><td>Suspected bowel wall thickening</td><td>Obtain delayed scans + positional changes; ensure viscus is well distended</td></tr>
+          <tr><td>3</td><td>Stomach wall thickening suspected</td><td>Give fizzies + water for gastric distension before rescanning</td></tr>
+          <tr><td>4</td><td>Stoma / ileal loop adjacent bowel not opacified</td><td>Inject contrast directly through colostomy / stoma with a small catheter</td></tr>
+          <tr><td>5</td><td>Motility issues (slow transit)</td><td>Metoclopramide (Reglan) 10 mg PO promotes gastric emptying (rarely used)</td></tr>
+          <tr><td>6</td><td>Bowel perforation suspected</td><td>Use dilute iodinated contrast (NOT barium)</td></tr>
+          <tr><td>7</td><td>Iodine allergy requiring positive oral contrast</td><td>Use dilute barium instead</td></tr>
+          <tr><td>8</td><td>Bowel obstruction — no oral transit</td><td>No oral contrast needed — air/fluid provide natural negative contrast</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- end ref-grid -->
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANE 5 · PHASE TIMELINE VISUALIZER
+══════════════════════════════════════════ -->
+<div id="timeline" class="pane">
+  <p class="section-label">Phase Timeline — injection ke baad har phase kab fire hoga</p>
+  <div class="tl-select-row">
+    <select class="tl-select" id="tl-proto" onchange="renderTimeline()">
+      <option value="">-- Protocol choose karein --</option>
+      <option>Routine Abdomen/Pelvis</option>
+      <option>A/P with Delay</option>
+      <option>Trauma</option>
+      <option>Quad Phase Liver</option>
+      <option>Triple Phase Liver</option>
+      <option>Dual Phase</option>
+      <option>Liver Donor</option>
+      <option>Adrenal Mass</option>
+      <option>Renal Mass</option>
+      <option>Renal Stone</option>
+      <option>Renal Artery Stenosis</option>
+      <option>Renal Donor/UPJ</option>
+      <option>Urogram</option>
+      <option>Pancreatic Mass</option>
+      <option>Enterography IBD</option>
+      <option>Enterography GI Bleed/Tumor</option>
+      <option>Mesenteric Ischemia</option>
+      <option>Aortic Dissection</option>
+      <option>AAA Pre-EVT</option>
+      <option>AAA Post-EVT</option>
+      <option>Lower Extremity Run-Off</option>
+    </select>
+  </div>
+  <div id="tl-meta" class="tl-meta" style="display:none"></div>
+  <div id="tl-canvas-wrap" class="tl-canvas" style="display:none">
+    <div id="tl-axis" class="tl-axis">
+      <div class="tl-inject-line"></div>
+      <div class="tl-inject-txt">Injection</div>
+      <div class="tl-axis-start">T = 0</div>
+      <div class="tl-axis-end" id="tl-end-label"></div>
+    </div>
+  </div>
+  <div id="tl-phase-list" class="phase-list" style="margin-top:20px;"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANE 6 · CONTRAST REACTION EMERGENCY CARD
+══════════════════════════════════════════ -->
+<div id="reactions" class="pane">
+  <p class="section-label">Contrast Reaction Management — Emergency Reference</p>
+
+  <div class="rx-banner">
+    <strong>⚠ General First Steps (ALL reactions):</strong> Stop injection · Call for help · Keep IV access · Assess airway/breathing/circulation · Document time and reaction · Have emergency cart nearby.
+    Monitor all patients minimum 30 min post-contrast.
+  </div>
+
+  <div class="rx-grid">
+
+    <div class="rx-card mild">
+      <h3>MILD Reaction</h3>
+      <div class="rx-subtitle">SELF-LIMITED · Usually no treatment needed</div>
+      <div class="rx-symptoms">
+        <h4>Signs &amp; Symptoms</h4>
+        <ul>
+          <li>Urticaria / skin flushing</li>
+          <li>Itching (pruritus)</li>
+          <li>Mild nausea</li>
+          <li>Scattered hives (&lt;10 wheals)</li>
+          <li>Nasal stuffiness</li>
+          <li>Sneezing / conjunctivitis</li>
+        </ul>
+      </div>
+      <div class="rx-steps">
+        <h4>Management Steps</h4>
+        <div class="rx-step"><div class="rx-step-num">1</div><p>Stop injection. Observe patient.</p></div>
+        <div class="rx-step"><div class="rx-step-num">2</div><p>Reassure patient — most mild reactions self-resolve.</p></div>
+        <div class="rx-step"><div class="rx-step-num">3</div><p>For urticaria / itching: <strong>Diphenhydramine (Benadryl) 25–50 mg IV or IM.</strong></p></div>
+        <div class="rx-step"><div class="rx-step-num">4</div><p>Monitor vital signs q 5–10 min. Document.</p></div>
+        <div class="rx-step"><div class="rx-step-num">5</div><p>Observe minimum <strong>30 minutes</strong> before discharge.</p></div>
+      </div>
+    </div>
+
+    <div class="rx-card moderate">
+      <h3>MODERATE Reaction</h3>
+      <div class="rx-subtitle">REQUIRES ACTIVE TREATMENT · Call physician immediately</div>
+      <div class="rx-symptoms">
+        <h4>Signs &amp; Symptoms</h4>
+        <ul>
+          <li>Diffuse urticaria / angioedema</li>
+          <li>Bronchospasm (wheezing)</li>
+          <li>Mild hypotension (responsive to treatment)</li>
+          <li>Severe nausea / vomiting</li>
+          <li>Tachycardia or bradycardia</li>
+          <li>Hypertension</li>
+        </ul>
+      </div>
+      <div class="rx-steps">
+        <h4>Management Steps</h4>
+        <div class="rx-step"><div class="rx-step-num">1</div><p>Stop injection. Call physician. IV access confirmed.</p></div>
+        <div class="rx-step"><div class="rx-step-num">2</div><p>Supplemental <strong>O₂ via mask at 6–10 L/min.</strong></p></div>
+        <div class="rx-step"><div class="rx-step-num">3</div><p>Bronchospasm: <strong>Albuterol inhaler 2–3 puffs</strong> or epinephrine 1:1000 — 0.3 mL IM.</p></div>
+        <div class="rx-step"><div class="rx-step-num">4</div><p>Hypotension: <strong>Normal saline IV 1–2 L bolus rapidly.</strong></p></div>
+        <div class="rx-step"><div class="rx-step-num">5</div><p><strong>Diphenhydramine 50 mg IV</strong> for urticaria/angioedema.</p></div>
+        <div class="rx-step"><div class="rx-step-num">6</div><p>Monitor continuously. Prepare to escalate to SEVERE management.</p></div>
+      </div>
+    </div>
+
+    <div class="rx-card severe">
+      <h3>SEVERE / ANAPHYLAXIS</h3>
+      <div class="rx-subtitle">LIFE-THREATENING · Activate emergency code NOW</div>
+      <div class="rx-symptoms">
+        <h4>Signs &amp; Symptoms</h4>
+        <ul>
+          <li>Severe hypotension (unresponsive to fluids)</li>
+          <li>Severe bronchospasm / laryngeal edema</li>
+          <li>Loss of consciousness</li>
+          <li>Cardiopulmonary arrest</li>
+          <li>Angioedema with airway compromise</li>
+        </ul>
+      </div>
+      <div class="rx-steps">
+        <h4>Management Steps</h4>
+        <div class="rx-step"><div class="rx-step-num">1</div><p><strong>ACTIVATE CODE / CALL 911.</strong> Do not leave patient.</p></div>
+        <div class="rx-step"><div class="rx-step-num">2</div><p><strong>Epinephrine 1:1000 — 0.5 mL (0.5 mg) IM</strong> into outer thigh. Repeat q 5–15 min if needed.</p></div>
+        <div class="rx-step"><div class="rx-step-num">3</div><p>Lay patient flat, legs elevated (unless breathing difficulty).</p></div>
+        <div class="rx-step"><div class="rx-step-num">4</div><p><strong>O₂ high-flow 10–15 L/min.</strong> Prepare for intubation.</p></div>
+        <div class="rx-step"><div class="rx-step-num">5</div><p><strong>IV fluids wide open</strong> — Normal saline 1–2 L bolus.</p></div>
+        <div class="rx-step"><div class="rx-step-num">6</div><p>Cardiac arrest: <strong>Epinephrine 1 mg IV</strong> + CPR per ACLS.</p></div>
+        <div class="rx-step"><div class="rx-step-num">7</div><p>Transfer to ED / ICU. Document everything with timestamps.</p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="section-label" style="margin-bottom:14px;">Emergency Drug Reference</p>
+  <div class="rx-drugs">
+    <div class="rx-drug"><div class="drug-name">Epinephrine 1:1000</div><div class="drug-dose">0.3–0.5 mg IM (outer thigh)</div><div class="drug-use">First-line anaphylaxis; bronchospasm unresponsive to inhaler</div></div>
+    <div class="rx-drug"><div class="drug-name">Diphenhydramine (Benadryl)</div><div class="drug-dose">25–50 mg IV / IM</div><div class="drug-use">Urticaria, pruritus, mild-moderate allergic reactions</div></div>
+    <div class="rx-drug"><div class="drug-name">Albuterol (Ventolin)</div><div class="drug-dose">2–3 puffs inhaler</div><div class="drug-use">Bronchospasm / wheezing — mild to moderate</div></div>
+    <div class="rx-drug"><div class="drug-name">Normal Saline (0.9% NaCl)</div><div class="drug-dose">1–2 L IV rapid bolus</div><div class="drug-use">Hypotension, volume replacement</div></div>
+    <div class="rx-drug"><div class="drug-name">Methylprednisolone</div><div class="drug-dose">125 mg IV</div><div class="drug-use">Delayed anaphylaxis prevention; severe reactions (slow onset)</div></div>
+    <div class="rx-drug"><div class="drug-name">Atropine</div><div class="drug-dose">0.6–1 mg IV</div><div class="drug-use">Vagal bradycardia associated with contrast reaction</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANE 7 · DOSE & SCHEDULE CALCULATOR
+══════════════════════════════════════════ -->
+<div id="calculator" class="pane">
+  <p class="section-label">Smart Calculator — IV Contrast Dose + Oral Contrast Schedule</p>
+  <div class="calc-grid">
+
+    <!-- IV DOSE CALCULATOR -->
+    <div class="calc-card">
+      <h3>💉 IV Contrast Dose Calculator</h3>
+      <div class="field-group">
+        <label>Patient Weight</label>
+        <div style="display:flex;gap:8px;">
+          <input class="field-input" type="number" id="weight-val" placeholder="e.g. 70" min="1" max="300" style="flex:1;">
+          <select class="field-input" id="weight-unit" style="width:70px;">
+            <option value="kg">kg</option>
+            <option value="lbs">lbs</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Protocol Type</label>
+        <select class="field-input" id="proto-type">
+          <option value="100">Standard (100 mL max) — Routine A/P, Trauma, Renal, Aortic</option>
+          <option value="125">Multi-phase Liver / Pancreatic (125 mL max)</option>
+          <option value="runoff">Lower Extremity Run-Off (125 mL)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>eGFR (mL/min/1.73m²) — optional</label>
+        <input class="field-input" type="number" id="egfr-val" placeholder="e.g. 65" min="1" max="150">
+      </div>
+      <button class="calc-btn" onclick="calcDose()">Calculate Dose</button>
+      <div id="dose-result" class="calc-result">
+        <div class="result-line"><span class="rl">Weight (kg)</span><span class="rv" id="r-wt">—</span></div>
+        <div class="result-line"><span class="rl">Recommended dose (1.0 mL/kg)</span><span class="rv" id="r-low">—</span></div>
+        <div class="result-line"><span class="rl">Max dose (1.5 mL/kg)</span><span class="rv" id="r-high">—</span></div>
+        <div class="result-line"><span class="rl">Protocol cap</span><span class="rv" id="r-cap">—</span></div>
+        <div class="result-line"><span class="rl" style="font-weight:700;color:#dde4f0;">Final recommended volume</span><span class="rv" id="r-final" style="font-size:1rem;">—</span></div>
+        <div class="result-line"><span class="rl">Injection rate</span><span class="rv" id="r-rate">—</span></div>
+        <div id="r-egfr-row" class="result-line" style="display:none"><span class="rl">eGFR warning</span><span class="rv warn" id="r-egfr-msg">—</span></div>
+      </div>
+    </div>
+
+    <!-- ORAL CONTRAST SCHEDULE -->
+    <div class="calc-card">
+      <h3>🕐 Oral Contrast Schedule Generator</h3>
+      <div class="field-group">
+        <label>Oral Contrast Type</label>
+        <select class="field-input" id="oral-type" onchange="updateOralFields()">
+          <option value="none">None</option>
+          <option value="water">Water (800 mL)</option>
+          <option value="volumen">VoLumen / Breeza (3 × 450 mL)</option>
+          <option value="barium">Barium 2.1% (2 × 225 mL)</option>
+          <option value="iodinated">Iodinated Oral (Omnipaque 350 in 1L)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Scan / Exam Time</label>
+        <input class="field-input" type="time" id="exam-time" value="10:00">
+      </div>
+      <div id="oral-note" style="font-size:0.75rem;color:#4a6a99;margin-bottom:12px;padding:8px;background:#141824;border-radius:6px;display:none;"></div>
+      <button class="calc-btn" onclick="calcSchedule()">Generate Schedule</button>
+      <div id="sched-result" class="calc-result">
+        <table class="sched-table">
+          <thead><tr><th>Time</th><th>Action</th><th>Volume</th></tr></thead>
+          <tbody id="sched-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- METFORMIN / RENAL RISK CHECKER -->
+  <div class="calc-card" style="margin-top:20px;">
+    <h3>🔍 Renal Risk &amp; Metformin Checker</h3>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field-group" style="flex:1;min-width:140px;margin-bottom:0;">
+        <label>eGFR (mL/min/1.73m²)</label>
+        <input class="field-input" type="number" id="risk-egfr" placeholder="e.g. 45" min="1" max="150">
+      </div>
+      <div class="field-group" style="flex:1;min-width:140px;margin-bottom:0;">
+        <label>Creatinine (mg/dL)</label>
+        <input class="field-input" type="number" id="risk-cr" placeholder="e.g. 1.2" step="0.1">
+      </div>
+      <div class="field-group" style="flex:1;min-width:140px;margin-bottom:0;">
+        <label>Diabetic on Metformin?</label>
+        <select class="field-input" id="risk-metformin">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <button class="calc-btn" style="width:auto;padding:10px 20px;margin-top:0;" onclick="checkRenal()">Check Risk</button>
+    </div>
+    <div id="risk-result" class="calc-result" style="margin-top:14px;">
+      <div id="risk-output"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── TAB SWITCHING ── */
+function showPane(id) {
+  const ids = ['protocols','decision','checklist','reference','timeline','reactions','calculator'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ids[i] === id));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === id));
+}
+
+/* ══════════════════════════════
+   PHASE TIMELINE
+══════════════════════════════ */
+const PROTO_DATA = {
+  'Routine Abdomen/Pelvis': { iv:'100 mL Omnipaque 350 · 3–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Portal Venous', sec:70, color:'#2a6dbd', note:'SMART PREP 50 HU liver · Dome→SP' }]},
+  'A/P with Delay': { iv:'100 mL · 3–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Portal Venous', sec:70, color:'#2a6dbd', note:'SMART PREP 50 HU liver · Dome→SP' },
+            { name:'3-min Delay', sec:180, color:'#40c8c8', note:'Dome→bottom of kidneys (extend to SP if bleeding)' }]},
+  'Trauma': { iv:'100 mL · 3–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Portal Venous', sec:70, color:'#2a6dbd', note:'SMART PREP 50 HU liver · Liver→inferior pubic rami' },
+            { name:'4-min Renal Delay', sec:240, color:'#f07070', note:'Through kidneys (extend to SP if pelvic injury)' }]},
+  'Quad Phase Liver': { iv:'125 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Non-contrast', sec:0, color:'#5a7099', note:'Top→bottom of liver' },
+            { name:'Arterial', sec:25, color:'#eec040', note:'SMART PREP Aorta 150 HU · Top→bottom liver · ≥25s' },
+            { name:'Portal Venous', sec:80, color:'#2a6dbd', note:'80s delay · Abdomen (±pelvis)' },
+            { name:'Equilibrium', sec:180, color:'#40c8c8', note:'3 min · Top liver→bottom kidneys' }]},
+  'Triple Phase Liver': { iv:'125 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Arterial', sec:25, color:'#eec040', note:'SMART PREP Aorta 150 HU · ≥25s · Top→bottom liver' },
+            { name:'Portal Venous', sec:80, color:'#2a6dbd', note:'80s delay · Abdomen (±pelvis)' },
+            { name:'Equilibrium', sec:180, color:'#40c8c8', note:'3 min · Top liver→bottom kidneys' }]},
+  'Dual Phase': { iv:'125 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Arterial', sec:25, color:'#eec040', note:'SMART PREP Aorta 150 HU · Top liver→iliac crest' },
+            { name:'Portal Venous', sec:80, color:'#2a6dbd', note:'80s delay · Abdomen (±pelvis)' }]},
+  'Liver Donor': { iv:'125 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Angiographic', sec:25, color:'#eec040', note:'Top liver→iliac crest' },
+            { name:'Portal Venous', sec:80, color:'#2a6dbd', note:'80s delay · Top liver→iliac crest' }]},
+  'Adrenal Mass': { iv:'100 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Non-contrast', sec:0, color:'#5a7099', note:'Liver dome→iliac crest · CHECK before proceeding' },
+            { name:'Portal Venous', sec:80, color:'#2a6dbd', note:'80s delay · Abdomen (±pelvis)' },
+            { name:'15-min Washout', sec:900, color:'#b090f0', note:'Top liver→iliac crest · Washout / absolute washout analysis' }]},
+  'Renal Mass': { iv:'100 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Non-contrast', sec:0, color:'#5a7099', note:'Top→bottom kidneys (low dose)' },
+            { name:'Corticomedullary', sec:30, color:'#eec040', note:'30s · Top liver→bottom kidneys' },
+            { name:'Nephrographic', sec:90, color:'#2a6dbd', note:'90s · Abdomen (±pelvis)' },
+            { name:'4-min Delayed', sec:240, color:'#40c8c8', note:'4 min · Top liver→bottom kidneys' }]},
+  'Renal Stone': { iv:'None', oral:'None',
+    phases:[{ name:'Non-contrast (low dose)', sec:0, color:'#5a7099', note:'Top kidneys→SP' }]},
+  'Renal Artery Stenosis': { iv:'100 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Arterial', sec:25, color:'#eec040', note:'Top kidneys→SP' },
+            { name:'Nephrographic', sec:90, color:'#2a6dbd', note:'90s · Top kidneys→iliac crest' }]},
+  'Renal Donor/UPJ': { iv:'100 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Non-contrast', sec:0, color:'#5a7099', note:'Top→bottom kidneys · CHECK hydronephrosis' },
+            { name:'Arterial', sec:25, color:'#eec040', note:'Top kidneys→iliac bifurcation' },
+            { name:'Nephrographic', sec:90, color:'#2a6dbd', note:'90s · Top liver→SP' },
+            { name:'7–10 min Delay', sec:480, color:'#40c8c8', note:'Collecting system opacification' }]},
+  'Urogram': { iv:'100 mL + 250 mL NS', oral:'Patient drinks 32 oz water on arrival',
+    phases:[{ name:'Non-contrast', sec:0, color:'#5a7099', note:'Top→bottom kidneys (low dose)' },
+            { name:'Nephrographic', sec:90, color:'#2a6dbd', note:'90s · Dome liver→SP' },
+            { name:'Excretory (prone)', sec:600, color:'#5dcc88', note:'10 min · Top kidneys→SP in PRONE position' }]},
+  'Pancreatic Mass': { iv:'125 mL · 4–5 mL/s', oral:'Water (32 oz on arrival)',
+    phases:[{ name:'Arterial', sec:25, color:'#eec040', note:'Top liver→iliac crest · Single breath-hold' },
+            { name:'Portal Venous', sec:80, color:'#2a6dbd', note:'80s delay · Abdomen (±pelvis)' }]},
+  'Enterography IBD': { iv:'100 mL · 4–5 mL/s', oral:'VoLumen 3×450 mL',
+    phases:[{ name:'Enteric', sec:50, color:'#5dcc88', note:'50s · Dome liver→SP' }]},
+  'Enterography GI Bleed/Tumor': { iv:'100 mL · 4–5 mL/s', oral:'VoLumen 3×450 mL',
+    phases:[{ name:'Enteric', sec:50, color:'#5dcc88', note:'50s · Dome liver→SP' },
+            { name:'2-min Delay', sec:120, color:'#40c8c8', note:'2 min · Dome liver→SP' }]},
+  'Mesenteric Ischemia': { iv:'100 mL · 4–5 mL/s', oral:'Water 800 mL',
+    phases:[{ name:'Arterial', sec:25, color:'#eec040', note:'Dome liver→SP' },
+            { name:'Venous', sec:90, color:'#2a6dbd', note:'90s · Dome liver→SP' }]},
+  'Aortic Dissection': { iv:'100 mL · 4–5 mL/s', oral:'None (interferes with 3D)',
+    phases:[{ name:'Non-contrast', sec:0, color:'#5a7099', note:'Top arch→diaphragm' },
+            { name:'Arterial', sec:25, color:'#eec040', note:'SMART PREP arch 150 HU · Apices→SP' },
+            { name:'4-min Organ Perfusion', sec:240, color:'#40c8c8', note:'Dome liver through kidneys' }]},
+  'AAA Pre-EVT': { iv:'100 mL · 4–5 mL/s', oral:'None or Water',
+    phases:[{ name:'Arterial', sec:25, color:'#eec040', note:'SMART PREP abdominal aorta 150 HU · Dome liver→SP' },
+            { name:'4-min Delay', sec:240, color:'#40c8c8', note:'Liver + kidneys' }]},
+  'AAA Post-EVT': { iv:'100 mL · 4–5 mL/s', oral:'None or Water',
+    phases:[{ name:'Non-contrast', sec:0, color:'#5a7099', note:'Dome→SP (pre-existing high density baseline)' },
+            { name:'Arterial', sec:25, color:'#eec040', note:'SMART PREP abdominal aorta 150 HU · Dome→SP' },
+            { name:'4-min Delayed', sec:240, color:'#f07070', note:'Dome→SP · Endoleak detection' }]},
+  'Lower Extremity Run-Off': { iv:'125 mL · 4–5 mL/s', oral:'Water',
+    phases:[{ name:'Non-contrast', sec:0, color:'#5a7099', note:'Diaphragm→toes' },
+            { name:'Arterial', sec:20, color:'#eec040', note:'SMART PREP over knees (first blush — no ROI) · HiRes HD + ASIR 30%' }]}
+};
+
+function fmtTime(sec) {
+  if (sec === 0) return 'T = 0 (pre-contrast)';
+  if (sec < 60)  return 'T + ' + sec + 's';
+  const m = Math.floor(sec/60), s = sec%60;
+  return s ? 'T + ' + m + 'min ' + s + 's' : 'T + ' + m + ' min';
+}
+
+function renderTimeline() {
+  const name = document.getElementById('tl-proto').value;
+  const meta  = document.getElementById('tl-meta');
+  const wrap  = document.getElementById('tl-canvas-wrap');
+  const list  = document.getElementById('tl-phase-list');
+  if (!name || !PROTO_DATA[name]) { meta.style.display='none'; wrap.style.display='none'; list.innerHTML=''; return; }
+
+  const d = PROTO_DATA[name];
+  meta.style.display = 'flex';
+  meta.innerHTML = `<div class="tl-meta-pill"><strong>IV:</strong> ${d.iv}</div><div class="tl-meta-pill"><strong>Oral:</strong> ${d.oral}</div><div class="tl-meta-pill"><strong>Phases:</strong> ${d.phases.length}</div>`;
+
+  const maxSec = Math.max(...d.phases.map(p=>p.sec), 10);
+  document.getElementById('tl-end-label').textContent = fmtTime(maxSec);
+
+  const axis = document.getElementById('tl-axis');
+  // clear old markers
+  axis.querySelectorAll('.tl-marker,.tl-label,.tl-sublabel,.tl-time').forEach(e=>e.remove());
+
+  d.phases.forEach(p => {
+    const pct = maxSec > 0 ? (p.sec / maxSec * 96) : 0;
+    const marker = document.createElement('div');
+    marker.className = 'tl-marker';
+    marker.style.left = pct + '%';
+    marker.style.background = p.color;
+    marker.title = p.name + ' · ' + fmtTime(p.sec);
+    axis.appendChild(marker);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'tl-label';
+    lbl.style.left = pct + '%';
+    lbl.style.color = p.color;
+    lbl.textContent = p.name;
+    axis.appendChild(lbl);
+
+    const tl = document.createElement('div');
+    tl.className = 'tl-time';
+    tl.style.left = pct + '%';
+    tl.textContent = fmtTime(p.sec);
+    axis.appendChild(tl);
+  });
+
+  wrap.style.display = 'block';
+
+  list.innerHTML = d.phases.map(p => `
+    <div class="phase-row-tl">
+      <div class="phase-dot-tl" style="background:${p.color}"></div>
+      <div style="flex:1">
+        <div class="phase-name" style="color:${p.color}">${p.name}</div>
+        <div class="phase-note">${p.note}</div>
+      </div>
+      <div class="phase-time">${fmtTime(p.sec)}</div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════
+   DOSE CALCULATOR
+══════════════════════════════ */
+function calcDose() {
+  let w = parseFloat(document.getElementById('weight-val').value);
+  const unit  = document.getElementById('weight-unit').value;
+  const proto = document.getElementById('proto-type').value;
+  const egfr  = parseFloat(document.getElementById('egfr-val').value);
+  if (!w || w <= 0) { alert('Please enter a valid weight.'); return; }
+  if (unit === 'lbs') w = w * 0.453592;
+  w = Math.round(w * 10) / 10;
+
+  const cap   = parseInt(proto);
+  const low   = Math.round(w * 1.0);
+  const high  = Math.round(w * 1.5);
+  const final = Math.min(high, cap);
+  const rate  = proto === '100' ? '3–5 mL/s' : '4–5 mL/s';
+
+  document.getElementById('r-wt').textContent   = w + ' kg';
+  document.getElementById('r-low').textContent  = low + ' mL';
+  document.getElementById('r-high').textContent = high + ' mL';
+  document.getElementById('r-cap').textContent  = cap + ' mL (protocol max)';
+  document.getElementById('r-final').textContent = final + ' mL';
+  document.getElementById('r-rate').textContent  = rate;
+
+  const egfrRow = document.getElementById('r-egfr-row');
+  if (!isNaN(egfr)) {
+    egfrRow.style.display = 'flex';
+    let msg = '';
+    if (egfr >= 45)         msg = 'eGFR ' + egfr + ' — Contrast safe. Standard hydration.';
+    else if (egfr >= 30)    msg = 'eGFR ' + egfr + ' — Caution. IV hydration recommended. Avoid NSAIDs.';
+    else if (egfr >= 15)    msg = 'eGFR ' + egfr + ' — High risk. Discuss with radiologist. Consider alternative.';
+    else                    msg = 'eGFR ' + egfr + ' — Contrast generally contraindicated. Radiologist decision required.';
+    document.getElementById('r-egfr-msg').textContent = msg;
+  } else {
+    egfrRow.style.display = 'none';
+  }
+
+  document.getElementById('dose-result').classList.add('show');
+}
+
+/* ══════════════════════════════
+   ORAL CONTRAST SCHEDULE
+══════════════════════════════ */
+const ORAL_SCHEMAS = {
+  none:      { steps: [], note: 'No oral contrast required.' },
+  water:     { note: 'Water oral contrast — negative contrast agent.',
+    steps: [{ offset:-20, vol:'400 mL water', action:'Drink' },
+            { offset:0,   vol:'400 mL water', action:'At table — drink before scan' }] },
+  volumen:   { note: 'VoLumen/Breeza — neutral/negative low-density contrast. Distends small bowel.',
+    steps: [{ offset:-60, vol:'450 mL (bottle 1)', action:'Drink 1st bottle' },
+            { offset:-40, vol:'450 mL (bottle 2)', action:'Drink 2nd bottle' },
+            { offset:-20, vol:'450 mL (bottle 3)', action:'Drink 3rd bottle' },
+            { offset:0,   vol:'400 mL water',       action:'At table — water chaser' }] },
+  barium:    { note: 'Barium 2.1% w/v — for iodine allergy patients requiring positive oral contrast.',
+    steps: [{ offset:-60, vol:'225 mL barium', action:'Drink 1st half' },
+            { offset:-30, vol:'225 mL barium', action:'Drink 2nd half' },
+            { offset:0,   vol:'400 mL water',  action:'At table — water chaser' }] },
+  iodinated: { note: 'Iodinated oral (Omnipaque 350: 50 mL in 1000 mL water) — suspected bowel leak or no IV contrast possible.',
+    steps: [{ offset:-60, vol:'500 mL', action:'Drink 1st 500 mL' },
+            { offset:-30, vol:'500 mL', action:'Drink 2nd 500 mL' },
+            { offset:0,   vol:'400 mL water', action:'At table — water chaser' }] }
+};
+
+function updateOralFields() {
+  const type = document.getElementById('oral-type').value;
+  const noteEl = document.getElementById('oral-note');
+  const schema = ORAL_SCHEMAS[type];
+  if (schema && schema.note && type !== 'none') {
+    noteEl.style.display = 'block';
+    noteEl.textContent = schema.note;
+  } else { noteEl.style.display = 'none'; }
+}
+
+function addMins(timeStr, mins) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const total = h * 60 + m + mins;
+  const nh = Math.floor(((total % 1440) + 1440) % 1440 / 60);
+  const nm = ((total % 1440) + 1440) % 1440 % 60;
+  return String(nh).padStart(2,'0') + ':' + String(nm).padStart(2,'0');
+}
+
+function calcSchedule() {
+  const type = document.getElementById('oral-type').value;
+  const exam = document.getElementById('exam-time').value || '10:00';
+  const schema = ORAL_SCHEMAS[type];
+  if (!schema || !schema.steps.length) {
+    document.getElementById('sched-tbody').innerHTML = '<tr><td colspan="3" style="color:#4a6a99;text-align:center;">No oral contrast for this protocol.</td></tr>';
+    document.getElementById('sched-result').classList.add('show');
+    return;
+  }
+  const rows = schema.steps.map(s => {
+    const t = addMins(exam, s.offset);
+    const when = s.offset === 0 ? 'At scan time' : (s.offset < 0 ? Math.abs(s.offset) + ' min before scan' : s.offset + ' min after scan');
+    return `<tr><td>${t}</td><td>${s.action} <span style="color:#4a6a99;font-size:0.72rem;">(${when})</span></td><td>${s.vol}</td></tr>`;
+  });
+  rows.push(`<tr><td style="color:#eec040;font-weight:700;">${exam}</td><td style="color:#eec040;">📡 SCAN</td><td>—</td></tr>`);
+  document.getElementById('sched-tbody').innerHTML = rows.join('');
+  document.getElementById('sched-result').classList.add('show');
+}
+
+/* ══════════════════════════════
+   RENAL RISK CHECKER
+══════════════════════════════ */
+function checkRenal() {
+  const egfr     = parseFloat(document.getElementById('risk-egfr').value);
+  const cr       = parseFloat(document.getElementById('risk-cr').value);
+  const metform  = document.getElementById('risk-metformin').value;
+  const out      = document.getElementById('risk-output');
+  let html = '';
+
+  if (!isNaN(egfr)) {
+    let cls, msg;
+    if (egfr >= 45)      { cls='color:#5dcc88'; msg='✅ eGFR '+egfr+' — Low risk. Contrast safe. Standard IV hydration recommended.'; }
+    else if (egfr >= 30) { cls='color:#eec040'; msg='⚠️ eGFR '+egfr+' — Moderate risk. Proceed with caution. IV hydration before and after. Avoid nephrotoxic agents. Recheck creatinine 48 hrs post.'; }
+    else if (egfr >= 15) { cls='color:#f07070'; msg='🔴 eGFR '+egfr+' — High risk. Discuss with radiologist and nephrology. Consider alternative imaging. If contrast essential: minimize dose, hydrate aggressively.'; }
+    else                 { cls='color:#f07070'; msg='🚫 eGFR '+egfr+' — Contrast generally contraindicated. Radiologist must decide. Patient may require dialysis after contrast if used.'; }
+    html += `<div style="padding:8px 0;font-size:0.82rem;${cls};font-weight:600;">${msg}</div>`;
+  }
+
+  if (!isNaN(cr)) {
+    let cmsg = '';
+    if (cr > 1.5)      cmsg = '⚠️ Creatinine '+cr+' mg/dL — Elevated. Review eGFR for full risk picture.';
+    else if (cr > 1.0) cmsg = '📋 Creatinine '+cr+' mg/dL — Mildly elevated. Monitor.';
+    else               cmsg = '✅ Creatinine '+cr+' mg/dL — Within normal range.';
+    html += `<div style="padding:8px 0;font-size:0.82rem;color:#9ab4d0;">${cmsg}</div>`;
+  }
+
+  if (metform === 'yes') {
+    let mmsg = '';
+    if (!isNaN(egfr) && egfr < 30) mmsg = '🚫 Metformin: STOP immediately. eGFR <30 + contrast = high lactic acidosis risk. Do not restart until renal function confirmed stable (48–72 hrs post).';
+    else if (!isNaN(egfr) && egfr < 45) mmsg = '⚠️ Metformin: Withhold for 48 hrs post-contrast. Restart only after creatinine rechecked and stable.';
+    else mmsg = '📋 Metformin: Standard precaution — withhold on day of and 48 hrs after contrast. Restart when renal function confirmed stable.';
+    html += `<div style="padding:8px 0;font-size:0.82rem;color:#eec040;">${mmsg}</div>`;
+  }
+
+  if (!html) html = '<div style="color:#4a6a99;font-size:0.82rem;">Please enter at least one value above.</div>';
+  out.innerHTML = html;
+  document.getElementById('risk-result').classList.add('show');
+}
+
+/* ── PROTOCOL CARD TOGGLE (accordion — one open at a time) ── */
+function toggleCard(el) {
+  const body = el.querySelector('.proto-body');
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.proto-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.proto-card').forEach(c => c.style.borderColor = '');
+  if (!isOpen) {
+    body.classList.add('open');
+    el.style.borderColor = '#2a6dbd';
+  }
+}
+
+/* ── SEARCH + FILTER ── */
+let currentCat = 'all';
+function setCat(btn) {
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  currentCat = btn.dataset.cat;
+  filterProtos();
+}
+function filterProtos() {
+  const q = document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('.proto-card').forEach(card => {
+    const catOk = currentCat === 'all' || card.dataset.cat === currentCat;
+    const searchOk = !q || card.dataset.search.toLowerCase().includes(q) ||
+                     card.querySelector('.proto-title').textContent.toLowerCase().includes(q);
+    card.classList.toggle('hidden', !catOk || !searchOk);
+  });
+}
+
+/* ── DECISION TREE ── */
+function highlight(id) {
+  document.querySelectorAll('.tree-section[id]').forEach(s => s.style.display = 'none');
+  const el = document.getElementById(id);
+  if (el) { el.style.display = 'block'; el.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+}
+
+/* ── CHECKLIST PROGRESS ── */
+function updateProgress() {
+  const all  = document.querySelectorAll('#checklist input[type=checkbox]');
+  const done = document.querySelectorAll('#checklist input[type=checkbox]:checked');
+  const pct  = all.length ? Math.round(done.length / all.length * 100) : 0;
+  document.getElementById('master-bar').style.width = pct + '%';
+  document.getElementById('master-lbl').textContent = done.length + ' of ' + all.length + ' complete (' + pct + '%)';
+}
+document.querySelectorAll('#checklist input[type=checkbox]').forEach(cb => {
+  cb.addEventListener('change', function() {
+    this.closest('.cl-item').classList.toggle('done', this.checked);
+    updateProgress();
+  });
+});
+updateProgress();
+</script>
+</body>
+</html>
